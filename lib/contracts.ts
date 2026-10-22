@@ -37,7 +37,7 @@ export interface UnitAssessment {
 export interface Assessment {
   id: string; createdAt: string; context: CourseContext;
   qualification: Product; units: Product[]; assessments: UnitAssessment[];
-  evaluator: { status: "complete" | "unavailable"; model: string; reason?: string; usage?: { inputTokens?: number; outputTokens?: number } };
+  evaluator: { status: "complete" | "unavailable" | "sample"; model: string; reason?: string; usage?: { inputTokens?: number; outputTokens?: number } };
   limitations: string[]; sources: Source[];
 }
-export interface ChatResult { reply: string; replyType: "gemini" | "evidence_only"; assessment: Assessment; trace: string[] }
+export interface ChatResult { reply: string; replyType: "gemini" | "evidence_only" | "demo"; assessment: Assessment; trace: string[] }

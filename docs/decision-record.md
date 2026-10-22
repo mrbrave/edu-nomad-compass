@@ -28,3 +28,11 @@ The Vercel create-project API returned `403 forbidden: You don't have permission
 ## Verification scope
 
 TypeScript checks, ten focused tests, live register retrieval and a production build passed. Live Gemini/JEV requests, remote deployment and a signed-in RTO browser flow are not verified without the new project's access. The supported preview supervisor briefly reported healthy, but the browser connection was refused and the supervisor then reported stopped. Visual browser QA is therefore unverified; no substitute browser or server infrastructure was introduced.
+
+## Proposed release — 23 October 2026
+
+Added a Demo/Studio switch, labelled local sample data, a configurable initial mode, blank private environment fields, a hosted environment template, DESIGN.md and PLATFORM.md. The platform guide includes an executive summary, architecture, operational boundaries and configuration instructions without personal account details or secret values.
+
+Changes are submitted for human review; no merge or production release is authorised by preparation of this change. The connected hosting integration does not expose this application's project, so hosted variable creation remains blocked. Existing private values must be preserved rather than overwritten with template blanks.
+
+TypeScript checks and all 13 tests passed. A clean production build passed after moving aside stale generated cache data. The managed preview supervisor again stopped before the browser could connect; browser and mobile interaction QA remain unverified. Live AI calls were not made for this release.

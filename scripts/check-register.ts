@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import { getProduct, searchTraining } from "../lib/training.ts";
+const [qualification,unit,search]=await Promise.all([getProduct("BSB50420"),getProduct("BSBCMM412"),searchTraining("leadership",true)]);
+assert.equal(qualification.type,"qualification");
+assert(qualification.grid.some(u=>u.isEssential));
+assert(qualification.sections.some(s=>s.type==="PackagingRules"));
+assert.equal(unit.type,"unit");
+for(const type of ["ApplicationOfUnit","PerformanceEvidence","KnowledgeEvidence","AssessmentConditions"])assert(unit.sections.some(s=>s.type===type),`Missing ${type}`);
+assert(search.length>0,"No unit search results");
+assert(search.every(s=>s.type==="unit"),"Unit-only search returned another type");
+console.log(JSON.stringify({qualification:{code:qualification.code,release:qualification.release,coreUnits:qualification.grid.filter(u=>u.isEssential).length,listedElectives:qualification.grid.filter(u=>!u.isEssential).length},unit:{code:unit.code,release:unit.release,sections:unit.sections.map(s=>s.title),prerequisiteStatus:unit.prerequisiteStatus},searchResults:search.length},null,2));

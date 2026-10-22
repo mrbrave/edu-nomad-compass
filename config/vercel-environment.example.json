@@ -1,0 +1,7 @@
+[
+  { "key": "COMPASS_DEFAULT_MODE", "value": "demo", "type": "plain", "target": ["production", "preview", "development"], "comment": "Initial workspace only. Valid values: demo or studio. The switch remains available." },
+  { "key": "GEMINI_MODEL", "value": "google/gemini-3.8-flash", "type": "plain", "target": ["production", "preview", "development"], "comment": "Gateway model ID for planning and explanations." },
+  { "key": "JEV_MODEL", "value": "typesafe-ai/jev-1.14.0", "type": "plain", "target": ["production", "preview", "development"], "comment": "Gateway model ID for the structured unit assessment." },
+  { "key": "AI_GATEWAY_API_KEY", "value": "", "type": "encrypted", "target": ["production", "preview", "development"], "comment": "Private value deliberately blank. OIDC can supply hosted Gateway authentication. Never replace an existing real value with this template." },
+  { "key": "COMPASS_ACCESS_TOKEN", "value": "", "type": "encrypted", "target": ["production", "preview", "development"], "comment": "Optional shared Studio access key, deliberately blank. Blank disables this app-level gate. Not individual user authentication." }
+]

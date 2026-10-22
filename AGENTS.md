@@ -1,5 +1,9 @@
 # eve Agent App
 
+## Release review requirement
+
+Prepare changes on a feature branch and open a pull request for human review. Do not merge, enable auto-merge or release to production unless the user explicitly accepts that release. Keep environment credentials out of commits and documentation. Hosted settings must target only this application's confirmed project.
+
 This project uses the eve framework: an agent is a directory of files under `agent/`, and eve compiles and runs it.
 
 For a content-only change to the root agent's identity, purpose, tone, or response guidelines, edit its existing authored instructions. Fresh projects use `agent/instructions.md`; a project may instead use `agent/instructions.ts` or files under `agent/instructions/`. You do not need to read the framework docs for a content-only instructions change. A fresh project already has its selected model in `agent/agent.ts`; preserve that file unless the user asks to change the model.

@@ -6,7 +6,15 @@ An independent research prototype for Australian RTO course designers. It compar
 
 This is a new codebase and Git repository. It has no runtime connection to 1906.au, its Git repository, API endpoints, Supabase database, environment files or deployments. Reference integration source was inspected read-only; no credentials were copied. The user designated `mrbrave/edu-nomad-compass` as this project's new GitHub destination. Use a **new** Vercel project named `edunomad-course-compass`. The older `mrbrave/edu-nomad` repository is a separate active project and must not be changed.
 
-## What the prototype does
+## Workspaces and handover
+
+**Demo** is a guided, authored leadership scenario with fixed illustrative figures and no external requests. **Studio** uses live register retrieval and the JEV/Gemini workflow. Use the header switch to change modes; changing modes clears the review. The default is Demo unless `COMPASS_DEFAULT_MODE=studio` is set. The switch is not authentication.
+
+- [DESIGN.md](DESIGN.md): current layout, colours, typography, components, responsive states and a recreation brief for design tools.
+- [PLATFORM.md](PLATFORM.md): executive summary, product behaviour, architecture, operations, privacy, configuration and limitations.
+- [Environment template](config/vercel-environment.example.json): non-sensitive defaults and blank private fields. Preserve existing real secrets when applying it.
+
+## What Studio does
 
 - Loads qualifications and skill sets from the official training.gov.au JSON API.
 - Retrieves the current release, packaging text, unit grid, application, performance criteria, foundation skills and assessment requirements.
@@ -52,6 +60,7 @@ The web application uses Next.js. The shared review and search actions are also 
 
 | Variable | Purpose |
 | --- | --- |
+| `COMPASS_DEFAULT_MODE` | Initial `demo` or `studio` workspace; default `demo` |
 | `GEMINI_MODEL` | Gateway model ID for planning and explanations; default `google/gemini-3.8-flash` |
 | `JEV_MODEL` | Gateway evaluation model ID; default `typesafe-ai/jev-1.14.0` |
 | `AI_GATEWAY_API_KEY` | This project's server-only local or external-runtime credential; optional on Vercel |
@@ -68,7 +77,11 @@ Both default model IDs were verified in the live Gateway catalogue on 22 October
 5. Verify the register explorer, then run one real JEV assessment followed by the Gemini explanation. Verify failures with withheld scores as well.
 6. A commercial RTO service needs hosting terms that permit commercial use. Vercel Hobby is restricted to non-commercial personal use; do not upgrade or add a paid plan automatically.
 
-The connected Vercel API returned a 403 permission error when asked to create the new project. The user subsequently supplied the new GitHub repository above, resolving the repository-creation step. Vercel creation and deployment remain unverified. Do not reuse 1906.au or the older EduNomad project to bypass these blockers.
+The connected Vercel API returned a 403 permission error when asked to create the new project. The user subsequently supplied the new GitHub repository above, resolving the repository-creation step. The user reports that the application is running. The connected hosting integration still does not expose this application’s project, so its hosted variables cannot be configured through that connection yet. Do not reuse 1906.au or the older EduNomad project to bypass these blockers.
+
+## Release review
+
+Submit changes on a feature branch and leave the pull request open for human review. Do not enable auto-merge or merge without the owner’s acceptance. Hosted configuration is a separate change and must target only this application.
 
 ## Validation
 

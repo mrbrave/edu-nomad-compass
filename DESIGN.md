@@ -1,12 +1,12 @@
 # EduNomad Course Compass UX and UI specification
 
-Version 2.0 | 23 October 2026 | Candidate release for review
+Version 3.0 | 23 October 2026 | Direct-provider Studio
 
 ## Design direction
 
 Course Compass belongs to the EduNomad brand. Its interface now uses the supplied deep navy and metallic gold palette, white text on dark surfaces and light grey supporting text. The parent website was inspected as a visual reference on 23 October 2026. The application translates that identity into a practical research workspace with warm content surfaces, larger reading text and clear next actions.
 
-This specification describes the candidate implementation. It is not a claim that the changes have been accepted or released to production. The implementation references are `app/globals.css`, `app/_components/course-compass.tsx`, `app/_components/workspace-access.tsx`, `app/icon.svg` and `app/apple-icon.tsx`.
+This specification describes the implementation in this revision. Deployment and verification evidence is recorded separately. The implementation references are `app/globals.css`, `app/_components/course-compass.tsx`, `packages/studio-shell/StudioAccessScreen.tsx`, `packages/studio-shell/UsageMeter.tsx`, `packages/studio-shell/StudioModeSwitch.tsx`, `app/icon.svg` and `app/apple-icon.tsx`.
 
 ## What changed and why
 
@@ -105,29 +105,44 @@ Use design frames of 1440 × 1024, 1728 × 1117, 1024 × 1024, 768 × 1024 and 3
 
 Demo opens without an application access key, loads a prepared brief and makes no register or model request. All figures remain labelled sample illustrations. Its credits card says “No credits needed”; this is not a fictional credit allocation. Demo exports identify themselves as samples.
 
-Choosing Studio checks `GET /api/workspace` before opening the workspace. When the shared pilot key is required, a dedicated entry screen explains how to enter and offers a route back to Demo. The key is kept only in memory. A failed key is reported on that form; no register request is issued before access is accepted. If no shared key is configured, the server permits entry, subject to hosting protection. This is shared workspace access, not individual identity or account authentication.
+Choosing Studio checks `GET /api/workspace` before opening the workspace. When the shared pilot key is required, a dedicated entry screen explains how to enter and offers a route back to Demo. The key is kept only in memory. A failed key is reported on that form; no register request is issued before access is accepted. If no application access code is configured, Studio fails closed. The application code is distinct from both provider credentials. This is shared workspace access, not individual identity or account authentication.
 
-The access-key control is disabled while checking. Studio can be left through the Demo option. Leaving clears the review and key. A page reload uses the configured default mode and requires access to be checked again. Hosting authentication is independent and may still protect the entire deployment, including Demo; this change does not weaken that protection.
+The access-key control is disabled while checking. Studio can be left through the Demo option. Leaving clears the visible review and access code. Opaque identifiers for an unresolved operation are retained in tab-scoped session storage so it can be recovered after unlocking again; prompts, replies and keys are not stored there. A page reload uses the configured default mode and requires access to be checked again. Hosting authentication is independent and may still protect the entire deployment, including Demo; this change does not weaken that protection.
 
-## Credits states
+## Usage and credits states
 
-| State | Display | Meaning |
+The sidebar heading is **Usage remaining**. It shows the internal shared workspace allowance, calculated from recorded usage and active reservations. It does not show a provider prepaid balance, an invoice or a personal account balance. The server admits a paid request only when its conservative reservation fits.
+
+| State | Display | Interaction |
 | --- | --- | --- |
-| Demo | No credits needed | The prepared sample does not call paid AI |
-| Available | Percentage remaining, progress bar and source timestamp | A trusted server source supplied a valid workspace allowance |
-| Not configured | Credits not assigned | No workspace allowance source is connected; this is not zero balance |
-| Unavailable | Credits temporarily unavailable | The source could not provide a valid response |
-| Zero | 0% remaining | A verified source explicitly returned zero |
+| Demo | No credits needed | Local sample actions remain available |
+| Available | Percentage, progress bar and last-checked time | Explicit live requests may be admitted |
+| Pending | Usage pending, percentage including the hold | Recover status; avoid another paid submission |
+| Review required | Usage review required | Explain that the operator must reconcile the uncertain outcome |
+| Not assigned | Allowance not assigned | Keep live submission unavailable |
+| Exhausted | 0% remaining and allowance message | Ask the operator for an allocation |
+| Misconfigured/unavailable | Usage not configured or temporarily unavailable | Never substitute a number; keep paid submission unavailable |
+| Live disabled | Live requests disabled in this environment | Register evidence remains available after access is accepted |
 
-A positive balance below 1% is displayed as “<1% remaining”, so rounding cannot turn it into an exhausted balance. The application receives only the normalised percentage, this indication and the timestamp, not a monetary budget or provider account balance. Credits are shared across the pilot workspace. No client-side counter is presented as a ledger. Per-user accounting, replenishment and automatic spend enforcement require additional identity and ledger work.
+A positive amount below 1% is displayed as **<1% remaining**. Percentage alone does not guarantee that the next conservative reservation fits. A pending percentage may increase when unused reserved allowance is released. Only the safe percentage, status, timestamp and live-enabled flag reach the UI; currency amounts, rates and receipts remain private.
 
 ## Evidence and Workflow tabs
 
-The evidence panel contains Unit workspace, Evidence trail and Workflow tabs. Workflow shows the most recent live request: course retrieval, optional Gemini shortlisting, unit retrieval, JEV assessment and final Gemini explanation. Each stage shows Complete or Unavailable, elapsed milliseconds and model/token details where available.
+The evidence panel retains **Unit workspace**, **Evidence trail** and **Workflow**. Workflow shows course retrieval, unit retrieval, JEV evaluation and Gemini explanation, with completion status, elapsed milliseconds and available aggregate token counts. It describes the latest request; durable request and receipt records are held on the server.
 
-JEV precedes the final explanation. The optional Gemini planner can run before JEV when no units have been selected. The UI must preserve that distinction. A successful request is not necessarily a fully assessed result: unavailable JEV withholds fit, and unavailable Gemini returns a labelled evidence summary.
+There is no preliminary Gemini planning call. If no units are selected, official grid titles provide a deterministic research shortlist; this does not assign suitability. JEV evaluates the current question, bounded stored conversation and official evidence. Its validated updated guidance is saved before Gemini receives it. Invalid or unavailable evaluation stops generation and withholds fit scores. A generator failure retains the valid evaluation and produces a labelled evidence summary.
 
-Workflow is a view of the latest request, not persistent history. The release test record provides the separate development baseline. Demo states clearly that no model was called.
+## Recovery and independent insights
+
+| Component | Specification |
+| --- | --- |
+| Recovery banner | Warm warning surface `#FAF3E8`, border `#E3CFB3`, 10 px radius, 12 px copy; **Recover status** action at least 38 px high |
+| Usage notice | Same warning family above the workspace; explicit unavailable, pending, exhausted or review-required text |
+| Saved-reply controls | Quiet surface `#F7F8FA`, border `#DCE1EA`, 10 px radius; **Assess saved reply** action and a clear additional-usage explanation |
+| Independent insights | Show Complete, Failed or Stale plus model-estimate labels. Evidence support and limitations clarity do not change the original fit assessment or saved reply |
+| Lock Studio | Explicit sidebar action; clears the access code from memory and returns to the entry screen |
+
+A submission receives an opaque operation ID before transport. An uncertain HTTP response offers status recovery, never an automatic paid retry. The brief and New review action cannot replace a pending turn. Switching to Demo locks Studio and preserves only the opaque reference needed to recover that operation. A saved reply can be viewed while a separately requested evaluation updates its insights. The extra evaluation is optional and metered independently; it cannot rewrite the reply. New providers, model management and billing administration are not ordinary-user controls.
 
 ## Interaction and accessibility
 
@@ -137,12 +152,12 @@ The readable text, larger controls and keyboard drawer are improvements, not a c
 
 ## Copy principles
 
-Use clear Australian English. Address the designer's task directly and explain the next action. Use “not assigned”, “unavailable” and “not assessed” precisely. Never turn an unknown into zero or describe a sample as a model result. Do not imply that suitability is compliance, that a shared key identifies a person or that the credits card implements billing.
+Use clear Australian English. Address the designer's task directly and explain the next action. Use “not assigned”, “unavailable” and “not assessed” precisely. Never turn an unknown into zero or describe a sample as a model result. Do not imply that suitability is compliance, that a shared key identifies a person or that the usage meter reads a provider account balance.
 
 ## Recreation brief for design tools
 
-> Recreate EduNomad Course Compass using the tokens and components in this document. Keep a deep navy sidebar and Studio entry, metallic gold primary actions with navy text, white reading panels and a warm paper canvas. Use the system display stack and 14 px body reading text. Make the experience calm, practical and approachable. Create desktop, compact and mobile frames, plus Demo welcome/result, Studio entry, invalid key, loading, Studio result, model-unavailable, credits-unknown and credits-available states. Include the Unit workspace, Evidence trail and Workflow tabs. Preserve sample/live labels and source provenance. Do not add personal names, invented balances, user accounts or compliance badges. Return editable components and annotate proposed changes to this baseline.
+> Recreate EduNomad Course Compass using the tokens and components in this document. Keep a deep navy sidebar and Studio entry, metallic gold primary actions with navy text, white reading panels and a warm paper canvas. Use the system display stack and 14 px body reading text. Make the experience calm, practical and approachable. Create desktop, compact and mobile frames, plus Demo welcome/result, Studio entry, invalid key, loading, Studio result, model-unavailable, usage-unassigned, usage-available, live-disabled, pending reservation, review-required recovery, saved reply and independent-insights states. Include the Unit workspace, Evidence trail and Workflow tabs. Preserve sample/live labels and source provenance. Do not add personal names, invented balances, user accounts or compliance badges. Return editable components and annotate proposed changes to this baseline.
 
 ## Change handover
 
-For each proposed revision, specify the screen/state, component, token or dimension, interaction change and mobile consequence. Separate visual changes from new functionality. All implementation changes go through a reviewable pull request; production release follows acceptance.
+For each proposed revision, specify the screen/state, component, token or dimension, interaction change and mobile consequence. Separate visual changes from new functionality. All implementation changes go through a reviewable pull request; production release follows the release authorisation for that change.

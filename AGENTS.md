@@ -1,59 +1,24 @@
-# eve Agent App
+# Course Compass development rules
 
-## Release review requirement
+Work only in this application's confirmed repository, deployment project and isolated database. Never reuse another product's database, provider credentials, prompts, branding or deployment configuration.
 
-Prepare changes on a feature branch and open a pull request for human review. Do not merge, enable auto-merge or release to production unless the user explicitly accepts that release. Keep environment credentials out of commits and documentation. Hosted settings must target only this application's confirmed project.
+## Release review
 
-This project uses the eve framework: an agent is a directory of files under `agent/`, and eve compiles and runs it.
+Prepare changes on a feature branch and open a pull request. Do not merge, enable auto-merge or release to production unless the user explicitly authorises that release. An explicit instruction for the current release overrides the default review gate; it does not authorise future merges.
 
-For a content-only change to the root agent's identity, purpose, tone, or response guidelines, edit its existing authored instructions. Fresh projects use `agent/instructions.md`; a project may instead use `agent/instructions.ts` or files under `agent/instructions/`. You do not need to read the framework docs for a content-only instructions change. A fresh project already has its selected model in `agent/agent.ts`; preserve that file unless the user asks to change the model.
+## Architecture
 
-## Read the docs before writing code
+- Keep reusable orchestration in `packages/dual-ai-core`, direct vendor clients in `packages/provider-adapters`, accounting in `packages/usage-ledger`, persistence behind `OperationStore`, and generic access/UI in `packages/shared-auth` and `packages/studio-shell`.
+- Keep course-specific evidence, prompts, scoring and register rules in `lib` and the host application.
+- Call the evaluator first. Validate its output and save the updated state before generation. Invalid evaluation stops generation.
+- Persist an attempt before any model request. Settle provider-reported usage before interpreting output. Preserve holds after ambiguous failures; never retry a paid call automatically.
+- Access codes and provider keys have different roles. Provider secrets, native receipts, rate cards and monetary balances stay server-side. Never commit populated environment files.
+- Use direct TypeSafe and Gemini APIs. Do not add an AI routing intermediary or restore a legacy agent endpoint that bypasses the ledger.
 
-```sh
-ls node_modules/eve/docs
-```
+## Verification
 
-Start with `docs/README.md`: it maps each task to the page that covers it. Read that page before authoring tools, connections, channels, skills, subagents, schedules, or deployment. In a workspace or local package install, resolve the installed `eve` package location first. If the package docs are missing, use https://eve.dev/docs.
+`npm test` disables networking and injects synthetic provider transports. `npm run verify` checks types, those tests and the production build. Builds must never call a model provider. Live AI checks require explicit user authorisation and are not part of CI.
 
-Use a bounded authoring loop:
+Run `tests/ledger.sql` against the isolated database for transactional checks; its fixtures roll back. Review private-schema permissions and run database advisors after schema changes. Follow `docs/operations.md` for allocation and reconciliation; ordinary Studio access must never grant administration.
 
-1. Read the relevant page and inspect only files you will modify or need to imitate.
-2. Stop discovery once the file location, imports, and definition shape are clear. Implement the smallest complete behavior the user requested.
-3. Run one narrow verification. Expand investigation only when it fails or the request needs project-specific details.
-
-Follow links or inspect public types only when the routed page leaves the task unanswered. Do not recursively glob `node_modules`, enumerate the entire docs tree, or read unrelated scaffold files when the direct path is known. Package-manager links can hide files from recursive glob tools even though direct reads work.
-
-## Prefer an existing integration
-
-When a task names an external product or service, search the registry before implementing its integration. For a generic capability, author a tool instead.
-
-```sh
-eve registry search <query> --json
-eve registry view <item>
-```
-
-Prefer items whose `implementation` is `native`; use Chat SDK adapters when no native channel fits. `registry view` links the item's documentation.
-
-Install without driving interactive prompts:
-
-```sh
-eve add <item> --non-interactive
-```
-
-Exit code 0 means setup completed, 1 failed, and 2 needs an answer or a prerequisite. On exit 2, run the `next.command` from the final NDJSON event. For a non-secret question, replace its `<JSON value>` answer placeholder with the answer you collected; string values need JSON quotes. Never pass a secret in `--answer`. See `docs/install-integrations.mdx` for setup prerequisites.
-
-## Use eve for Vercel operations
-
-Use eve to link and deploy Vercel projects:
-
-```sh
-eve link --non-interactive --project <name-or-id> [--team <team-id-or-slug>]
-eve deploy --non-interactive --yes [--project <name-or-id>]
-```
-
-A setup may report `eve link` as a prerequisite; run it, then retry the continuation. When a completed setup event has `deploymentRequired: true`, run the `next` command it reports.
-
-## Validate the change
-
-Run the validation the task requests. When it does not establish the behavior you changed, run the narrowest relevant check.
+Update `DESIGN.md` for UI behaviour and `PLATFORM.md` for platform contracts. Record actual results and unverified areas in `docs/quality`; do not describe mocks as real AI quality measurements.

@@ -45,7 +45,7 @@ test("request validation bounds scope and prevents URL injection",()=>{
 test("official HTML is converted to inert text, including escaped line breaks",()=>{
   assert.equal(contentText('<div><p>A &amp; B</p>\\r\\n<script>alert(1)</script><p>Evidence</p></div>'),"A & B\n Evidence");
 });
-test("an optional app access key is enforced without disclosing it",()=>{
+test("the shared pilot access key is enforced without disclosing it",()=>{
   process.env.COMPASS_ACCESS_TOKEN="test-only-key";
   assert.equal(protect(new Request("http://localhost/api/register"))?.status,401);
   assert.equal(protect(new Request("http://localhost/api/register",{headers:{authorization:"Bearer test-only-key"}})),undefined);

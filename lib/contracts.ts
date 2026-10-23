@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { FailureCode } from "../packages/dual-ai-core/contracts.ts";
 
 export const codeSchema = z.string().trim().toUpperCase().regex(/^[A-Z][A-Z0-9]{2,19}$/);
 export const contextSchema = z.object({
@@ -41,12 +42,16 @@ export interface Assessment {
   limitations: string[]; sources: Source[];
 }
 export interface WorkflowStage {
-  name: "register" | "planner" | "units" | "jev" | "explanation";
+  name: "register" | "units" | "jev" | "explanation";
   status: "complete" | "unavailable";
   durationMs: number;
   model?: string;
   inputTokens?: number;
   outputTokens?: number;
-  errorCode?: "authentication" | "credits" | "rate_limit" | "timeout" | "service_error";
+  errorCode?: FailureCode;
 }
-export interface ChatResult { reply: string; replyType: "gemini" | "evidence_only" | "demo"; assessment: Assessment; trace: string[]; stages?: WorkflowStage[] }
+export interface ChatResult {
+  reply: string; replyType: "gemini" | "evidence_only" | "demo"; assessment: Assessment; trace: string[]; stages?: WorkflowStage[];
+  operationId?: string; conversationId?: string; conversationVersion?: number; question?: string;
+  assessmentStatus?: "not_requested" | "disabled";
+}

@@ -23,7 +23,7 @@ Credentials were configured server-side in this application's deployment project
 | Live AI calls | None for this migration |
 | AI response quality / invoice reconciliation | Not checked |
 | Candidate deployment | Vercel Preview READY for implementation revision `a606f326d297600bf6908dd963769eea2a257fab`; GitHub Vercel status successful |
-| Deployed application access | Workspace, usage and operation-recovery reads return 401 without an application access code |
+| Deployed application access | Private-route probes stopped at hosting authentication; the deployed application-specific gate remains unverified. Its guard is covered by deterministic tests. |
 | Interactive browser review | Browser reached the Vercel sign-in screen; desktop/mobile interaction remains unverified |
 
 ## Contracts exercised

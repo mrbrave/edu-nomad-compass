@@ -1,6 +1,6 @@
 # EduNomad Course Compass — platform guide
 
-Version: 1.0 · 23 October 2026 · Proposed Demo/Studio release
+Version: 2.0 · 23 October 2026 · Brand access and workflow candidate
 
 ## Executive summary
 
@@ -12,7 +12,7 @@ The platform is a research prototype. It does not approve a complete qualificati
 
 The next commercial milestone should be a bounded pilot with an experienced course designer. Measure time saved, unsupported recommendations, agreement with expert judgement and the effort required to review the output. Confirm production data access, commercial hosting entitlement and operating cost before expanding delivery.
 
-This release proposes a mode switch, an environment template and documentation. Publication to the live application requires review and acceptance of the pull request. The documents distinguish implemented behaviour from work still required.
+The first Demo/Studio release has been accepted. This candidate adds the parent-brand visual system, a dedicated Studio entry, an honest credits panel and workflow diagnostics. Publication to the live application requires review and acceptance of the pull request. The documents distinguish implemented behaviour from work still required.
 
 ## Product scope
 
@@ -43,7 +43,7 @@ Complete qualification assembly; exhaustive packaging-group and exclusion checki
 
 Demo is a guided tour, not a free-form AI conversation. Its figures are authored examples and its sources list is empty. Studio never substitutes Demo data when a service fails. Switching modes clears the active workspace; changing the Studio brief clears the current conversation and result. A reload starts again using the configured default mode.
 
-The switch is not an access-control system. Hiding live content behind the Studio option does not restrict direct API access. Use hosting authentication and, where appropriate, the separate shared access-key gate for a private pilot.
+Studio now checks access before loading register data. The configured shared pilot key is enforced by the server, while Demo remains a local sample. This is shared access, not individual user authentication. Hosting protection remains independent and can still protect Demo as well as Studio.
 
 ## Architecture
 
@@ -90,6 +90,8 @@ The planner and the final explanation are separate Gemini tasks. “JEV before G
 | `lib/jev.ts` | TypeSafe-compatible Gateway evaluation and strict result parsing |
 | `lib/review.ts` | Live workflow, planning, explanation and explicit failure handling |
 | `lib/http.ts` | Shared access key, origin/rate checks and safe errors |
+| `lib/workspace.ts` | Validated allowance source with percentage-only output |
+| `app/_components/workspace-access.tsx` | Studio entry and credits presentation |
 | `agent/tools/` | Reusable Eve search/review definitions |
 
 ## Data and assessment semantics
@@ -126,9 +128,12 @@ The current application uses **AI Gateway** for both model services. Configure t
 | `JEV_MODEL` | Non-sensitive config | `typesafe-ai/jev-1.14.0` | Structured evaluation model ID |
 | `AI_GATEWAY_API_KEY` | Private | Blank | Optional server-side Gateway credential; hosted OIDC can be used instead |
 | `COMPASS_ACCESS_TOKEN` | Private | Blank | Optional shared key for Studio APIs; blank disables this app-level gate |
+| `COMPASS_CREDITS_URL` | Server configuration | Blank | Optional trusted HTTPS allowance source |
+| `COMPASS_CREDITS_TOKEN` | Private | Blank | Optional credential for that source |
+| `COMPASS_VERIFY_PIPELINE` | Preview test flag | `0` | Opt-in branch-specific live check; ignored in Production |
 | `VERCEL_OIDC_TOKEN` | Platform-managed private value | Do not create manually | Short-lived hosted authentication when provided by the platform |
 
-No variable in this template uses a browser-public prefix. The default mode is the only configuration passed to the browser by the page. A mode change does not change deployment configuration or security policy.
+No variable in this template uses a browser-public prefix. The page passes only the default mode. An authorised workspace endpoint can additionally return a normalised allowance percentage and timestamp; it does not return private budgets or source credentials. A mode change does not change deployment configuration or security policy.
 
 ### Hosted setup
 
@@ -140,7 +145,15 @@ No variable in this template uses a browser-public prefix. The default mode is t
 6. An optional shared access key must be a real private value to enforce the gate. A blank field provides no gate. This key is not per-user authentication or a substitute for tenant isolation.
 7. Hosting environment changes apply to new deployments. Apply the approved release and verify its effective mode and service behaviour. Do not enable auto-merge or skip review.
 
-**Current setup limitation:** the connected hosting integration did not expose this application's running project during preparation. No hosted variable creation is claimed. The environment template and code are ready for review; the correct project must be accessible to complete hosted configuration.
+**Connection verified on 23 October 2026:** the correct hosting project is now accessible. The five original configuration keys are present across the configured environments. Private values were not read or copied. Configuration presence alone does not establish successful model calls; the separate live workflow test records that result.
+
+### Workspace credits
+
+The sidebar displays a shared workspace allowance rather than a personal balance. Demo says “No credits needed”. Studio shows “Credits not assigned” until a trusted allowance source is connected; a missing or failed source is never presented as zero.
+
+`COMPASS_CREDITS_URL` is an optional operator-controlled HTTPS endpoint. It returns `{ total, remaining, updatedAt }`, where total and remaining use the same credit units and updatedAt is an ISO timestamp. `COMPASS_CREDITS_TOKEN` is an optional server-only credential for that source. The application validates the response and exposes only a rounded-down remaining percentage and timestamp. Source values may be credit units; monetary budgets must remain server side.
+
+This release does not provision or maintain a billing ledger. The source must own allocation and consumption. Refreshing the card does not deduct credits, and the card does not enforce a spend cap. Individual user balances require identity, tenant ownership and a durable ledger. No allowance source was connected during preparation, so the genuine initial Studio state is not assigned.
 
 ### Local setup
 
@@ -158,6 +171,7 @@ The environment template is committed; `.env.local`, platform link files and dep
 
 | Interface | Behaviour |
 | --- | --- |
+| `GET /api/workspace` | Check Studio access and return safe credits state |
 | `GET /api/register?code=...` | Retrieve a product by validated code |
 | `GET /api/register?q=...` | Search the official register |
 | `POST /api/chat` | Review the submitted context and up to four units; optional bounded history |
@@ -191,6 +205,18 @@ For each accepted release, check Demo without credentials; switch to Studio; ver
 Demo does not call paid AI or register services. Studio can make a planning call, a structured JEV call and an explanation call, depending on the selection. Up to four units and bounded history help constrain request size, but they do not implement customer budgets. Provider balances, Gateway credits and hosting usage are separate operational concerns. Verify actual account terms and use before estimating a paid service margin.
 
 Gateway model IDs can change. Confirm supported IDs, entitlement, pricing and model behaviour before adopting a new default. Do not automatically upgrade hosting or enable paid services as part of this release.
+
+## Workflow diagnostics and development tests
+
+The Workflow tab records the latest review's stage order, status, duration and available model/token metadata. It does not record a persistent audit history or disclose prompts, credentials, private provider payloads or account balances. The optional planner can run before JEV; the final explanation receives the new JEV result or its explicit unavailable state.
+
+`tests/workflow.test.ts` verifies the orchestration using synthetic services. It covers normal JEV-to-Gemini handover, JEV failure with withheld scores, Gemini failure with retained evaluation, both failures, and autonomous planning. Separate checks validate credits normalisation and the unconfigured state. These are integration-contract tests, not measurements of actual model quality.
+
+`npm run test:workflow:live` runs one synthetic selected-unit review using the configured runtime credentials. It prints one sanitised `COMPASS_LIVE_CHECK` record containing statuses, timing, model IDs, token counts, fit/source references and outcome. It does not print credentials or a private error payload. It must be run only with authorised service access.
+
+For a bounded Preview release check, `COMPASS_VERIFY_PIPELINE=1` on a specific Preview branch runs this test before the build. Production builds ignore this flag. Reset the branch flag to 0 after the check so later documentation builds do not repeat paid calls. A degraded test is reported as such; a successful web build must not be mistaken for a passed AI test.
+
+See `docs/quality/TEST-PLAN.md` and the dated release record for scenarios, observed results and future comparisons. Source releases and model outputs can vary; compare both correctness and review effort rather than expecting identical prose or scores.
 
 ## Validation and known gaps
 

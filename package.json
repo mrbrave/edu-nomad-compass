@@ -7,7 +7,7 @@
     "#evals/*": "./evals/*"
   },
   "scripts": {
-    "build": "next build",
+    "build": "node scripts/build.mjs",
     "deploy": "eve deploy",
     "dev": "node scripts/dev.mjs",
     "eval": "eve eval",
@@ -18,7 +18,8 @@
     "start:eve": "eve start",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "test:register": "node --experimental-strip-types scripts/check-register.ts",
-    "verify": "npm run typecheck && npm test && npm run build"
+    "verify": "npm run typecheck && npm test && npm run build",
+    "test:workflow:live": "node --experimental-strip-types scripts/check-workflow-live.ts"
   },
   "dependencies": {
     "@vercel/connect": "2.5.2",

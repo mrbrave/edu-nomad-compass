@@ -40,4 +40,13 @@ export interface Assessment {
   evaluator: { status: "complete" | "unavailable" | "sample"; model: string; reason?: string; usage?: { inputTokens?: number; outputTokens?: number } };
   limitations: string[]; sources: Source[];
 }
-export interface ChatResult { reply: string; replyType: "gemini" | "evidence_only" | "demo"; assessment: Assessment; trace: string[] }
+export interface WorkflowStage {
+  name: "register" | "planner" | "units" | "jev" | "explanation";
+  status: "complete" | "unavailable";
+  durationMs: number;
+  model?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  errorCode?: "authentication" | "credits" | "rate_limit" | "timeout" | "service_error";
+}
+export interface ChatResult { reply: string; replyType: "gemini" | "evidence_only" | "demo"; assessment: Assessment; trace: string[]; stages?: WorkflowStage[] }

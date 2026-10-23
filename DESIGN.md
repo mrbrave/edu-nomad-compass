@@ -119,7 +119,7 @@ The access-key control is disabled while checking. Studio can be left through th
 | Unavailable | Credits temporarily unavailable | The source could not provide a valid response |
 | Zero | 0% remaining | A verified source explicitly returned zero |
 
-The application receives only the normalised percentage and timestamp, not a monetary budget or provider account balance. Credits are shared across the pilot workspace. No client-side counter is presented as a ledger. Per-user accounting, replenishment and automatic spend enforcement require additional identity and ledger work.
+A positive balance below 1% is displayed as “<1% remaining”, so rounding cannot turn it into an exhausted balance. The application receives only the normalised percentage, this indication and the timestamp, not a monetary budget or provider account balance. Credits are shared across the pilot workspace. No client-side counter is presented as a ledger. Per-user accounting, replenishment and automatic spend enforcement require additional identity and ledger work.
 
 ## Evidence and Workflow tabs
 

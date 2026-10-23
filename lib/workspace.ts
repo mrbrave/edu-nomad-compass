@@ -5,6 +5,7 @@ export interface WorkspaceCredits {
   remainingPercent: number | null;
   updatedAt: string | null;
   label: string;
+  belowOnePercent?: boolean;
 }
 
 const balanceSchema = z.object({
@@ -15,7 +16,8 @@ const balanceSchema = z.object({
 
 export function normaliseCredits(input: unknown): WorkspaceCredits {
   const balance = balanceSchema.parse(input);
-  return { status: "available", remainingPercent: Math.floor(balance.remaining / balance.total * 100), updatedAt: balance.updatedAt, label: "Workspace credits" };
+  const percent=balance.remaining / balance.total * 100;
+  return { status: "available", remainingPercent: Math.floor(percent), belowOnePercent:percent>0&&percent<1, updatedAt: balance.updatedAt, label: "Workspace credits" };
 }
 
 // The source is controlled by the operator, never by a browser-supplied URL.

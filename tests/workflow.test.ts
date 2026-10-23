@@ -53,6 +53,8 @@ test("autonomous planning precedes unit retrieval and assessment",async()=>{
 test("credits disclose only a validated remaining percentage",()=>{
   const result=normaliseCredits({total:100,remaining:78.8,updatedAt:"2026-10-23T00:00:00Z",privateBudget:500});
   assert.equal(result.remainingPercent,78);assert.equal("total" in result,false);assert.equal("privateBudget" in result,false);
+  assert.equal(normaliseCredits({total:100,remaining:.1,updatedAt:"2026-10-23T00:00:00Z"}).belowOnePercent,true);
+  assert.equal(normaliseCredits({total:100,remaining:0,updatedAt:"2026-10-23T00:00:00Z"}).belowOnePercent,false);
   assert.throws(()=>normaliseCredits({total:0,remaining:2,updatedAt:"2026-10-23T00:00:00Z"}));
   assert.throws(()=>normaliseCredits({total:100,remaining:101,updatedAt:"2026-10-23T00:00:00Z"}));
 });

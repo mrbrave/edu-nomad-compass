@@ -41,8 +41,8 @@ export function WorkspaceAccess({ onDemo, children }: { onDemo: () => void; chil
 export function CreditsCard({ credits, isDemo, onRefresh }: { credits: WorkspaceCredits; isDemo: boolean; onRefresh?: () => void }) {
   const available = credits.status === "available";
   return <section className="credits-card" aria-label="Available credits"><div className="credits-heading"><span>YOUR CREDITS</span>{onRefresh && <button onClick={onRefresh} aria-label="Refresh available credits">Refresh</button>}</div>
-    <div className="credits-value">{isDemo ? "No credits needed" : available ? <><strong>{credits.remainingPercent}%</strong> remaining</> : credits.label}</div>
-    {available && <progress value={credits.remainingPercent ?? 0} max={100} aria-label="Workspace credits remaining" />}
+    <div className="credits-value">{isDemo ? "No credits needed" : available ? <><strong>{credits.belowOnePercent?"<1":credits.remainingPercent}%</strong> remaining</> : credits.label}</div>
+    {available && <progress value={credits.remainingPercent ?? 0} max={100} aria-label="Workspace credits remaining" aria-valuetext={credits.belowOnePercent?"Less than one percent remaining":`${credits.remainingPercent}% remaining`} />}
     <p>{isDemo ? "Explore the sample without using your Studio allowance." : available ? "Shared workspace allowance. Your monetary budget stays private." : "A verified workspace allowance will appear here when connected. This does not indicate your AI provider balance."}</p>
     {available && credits.updatedAt && <small>Source updated {new Date(credits.updatedAt).toLocaleString("en-AU")}</small>}
   </section>;

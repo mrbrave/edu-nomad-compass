@@ -151,7 +151,7 @@ No variable in this template uses a browser-public prefix. The page passes only 
 
 The sidebar displays a shared workspace allowance rather than a personal balance. Demo says “No credits needed”. Studio shows “Credits not assigned” until a trusted allowance source is connected; a missing or failed source is never presented as zero.
 
-`COMPASS_CREDITS_URL` is an optional operator-controlled HTTPS endpoint. It returns `{ total, remaining, updatedAt }`, where total and remaining use the same credit units and updatedAt is an ISO timestamp. `COMPASS_CREDITS_TOKEN` is an optional server-only credential for that source. The application validates the response and exposes only a rounded-down remaining percentage and timestamp. Source values may be credit units; monetary budgets must remain server side.
+`COMPASS_CREDITS_URL` is an optional operator-controlled HTTPS endpoint. It returns `{ total, remaining, updatedAt }`, where total and remaining use the same credit units and updatedAt is an ISO timestamp. `COMPASS_CREDITS_TOKEN` is an optional server-only credential for that source. The application validates the response and exposes only a rounded-down remaining percentage and timestamp, with a separate less-than-one-percent indication for positive balances below 1%. Source values may be credit units; monetary budgets must remain server side.
 
 This release does not provision or maintain a billing ledger. The source must own allocation and consumption. Refreshing the card does not deduct credits, and the card does not enforce a spend cap. Individual user balances require identity, tenant ownership and a durable ledger. No allowance source was connected during preparation, so the genuine initial Studio state is not assigned.
 

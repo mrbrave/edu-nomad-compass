@@ -1,4 +1,4 @@
-import { ProviderError, UnsentRequest, type ProviderResult } from "../provider-adapters/contracts.ts";
+import { ProviderError, ProviderStageError, UnsentRequest, providerFailureCode, type ProviderResult } from "../provider-adapters/contracts.ts";
 import { ceiling, costOf, type RateCard } from "../usage-ledger/pricing.ts";
 import type { CorePolicy, FailureCode, FrozenConfig, OperationStore, Role, StoredOperation, TurnIdentity } from "./contracts.ts";
 
@@ -8,11 +8,8 @@ export class StudioError extends Error {
   constructor(code: string, status = 409) { super(code); this.code = code; this.status = status; }
 }
 function failureCode(error: unknown): FailureCode {
-  if(error instanceof UnsentRequest)return "input_limit";
   if(error instanceof StudioError)return "ledger";
-  if(error instanceof ProviderError)return error.status===401||error.status===403?"authentication":error.status===402?"credits":error.status===429?"rate_limit":"service_error";
-  const name=error instanceof Error?error.name:"";
-  return name==="TimeoutError"||name==="AbortError"?"timeout":name==="ZodError"?"invalid_output":"service_error";
+  return providerFailureCode(error);
 }
 
 export async function meteredCall(store: OperationStore, operationId: string, role: Role, rate: RateCard, run: () => Promise<ProviderResult>) {
@@ -22,7 +19,9 @@ export async function meteredCall(store: OperationStore, operationId: string, ro
   let response: ProviderResult;
   try { response = await run(); }
   catch (error) {
-    await store.call("reject_attempt", { operationId, attemptId, definitive: error instanceof UnsentRequest || error instanceof ProviderError && error.definitiveRejection });
+    const definitive = error instanceof UnsentRequest || (error instanceof ProviderError || error instanceof ProviderStageError) && error.definitiveRejection;
+    await store.call("reject_attempt", { operationId, attemptId, definitive });
+    console.warn(JSON.stringify({event:"studio_provider_failure",operationId,attemptId,role,code:failureCode(error),stage:error instanceof ProviderStageError?error.stage:role,definitive,...(error instanceof ProviderError || error instanceof ProviderStageError?{providerStatus:error.status}:{})}));
     throw error;
   }
   try {

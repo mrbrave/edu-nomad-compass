@@ -14,6 +14,31 @@ export interface ProviderResult<T = unknown> { output: T; receipt: UsageReceipt 
 // The adapter can prove no generation/evaluation request was sent.
 export class UnsentRequest extends Error {}
 
+export type ProviderFailureCode = "input_limit" | "authentication" | "credits" | "rate_limit" | "timeout" | "invalid_output" | "service_error";
+export function providerFailureCode(error: unknown): ProviderFailureCode {
+  if (error instanceof ProviderStageError) return error.code;
+  if (error instanceof UnsentRequest) return "input_limit";
+  if (error instanceof ProviderError) return error.status === 401 || error.status === 403 ? "authentication" : error.status === 402 ? "credits" : error.status === 429 ? "rate_limit" : "service_error";
+  const name = error instanceof Error ? error.name : "";
+  return name === "TimeoutError" || name === "AbortError" ? "timeout" : name === "ZodError" ? "invalid_output" : "service_error";
+}
+
+// Stage information is safe to persist; upstream bodies and credentials are excluded.
+export class ProviderStageError extends Error {
+  readonly stage: "preflight" | "generation" | "receipt";
+  readonly code: ProviderFailureCode;
+  readonly definitiveRejection: boolean;
+  readonly status?: number;
+  constructor(stage: ProviderStageError["stage"], error: unknown) {
+    super(`Gemini ${stage} unavailable.`);
+    this.name = "ProviderStageError";
+    this.stage = stage;
+    this.code = providerFailureCode(error);
+    this.status = error instanceof ProviderError ? error.status : undefined;
+    this.definitiveRejection = stage === "preflight" || error instanceof UnsentRequest || error instanceof ProviderError && error.definitiveRejection;
+  }
+}
+
 // Only a documented rejection proves that a request did not start generation.
 export class ProviderError extends Error {
   readonly provider: string;

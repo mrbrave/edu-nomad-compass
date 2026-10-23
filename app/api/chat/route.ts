@@ -1,7 +1,7 @@
 import { errorResponse, protect } from "@/lib/http";
 import { studioTurn } from "@/lib/studio";
 export const runtime="nodejs";
-export const maxDuration=180;
+export const maxDuration=300;
 export async function POST(request:Request){
   const blocked=protect(request);if(blocked)return blocked;
   try{

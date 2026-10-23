@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { CourseContext, Product, UnitAssessment } from "./contracts.ts";
 import { checkRules, recommendation } from "./rules.ts";
+import { gatewayAuthentication } from "./gateway.ts";
 
 export const JEV_MODEL = process.env.JEV_MODEL || "typesafe-ai/jev-1.14.0";
 const FIT_LEVELS=["No demonstrated alignment with the stated course objectives","Limited alignment; most objectives are outside the unit","Partial alignment with some material objectives","Strong alignment with most relevant objectives","Direct and comprehensive alignment with the stated objectives"];
@@ -47,10 +48,9 @@ export async function assessWithJev(context:CourseContext,qualification:Product,
   }
   // Preserve the same TypeSafe primitives and native confidence used in the reference methodology.
   // Gateway OIDC belongs to this new deployment; no other project's credentials are read.
-  const token=process.env.AI_GATEWAY_API_KEY||process.env.VERCEL_OIDC_TOKEN;
-  if(!token)throw new Error("AI Gateway access is missing.");
+  const auth=gatewayAuthentication();
   const response=await fetch("https://ai-gateway.vercel.sh/typesafe/v1/systemone",{method:"POST",
-    headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,"ai-gateway-auth-method":process.env.AI_GATEWAY_API_KEY?"api-key":"oidc"},
+    headers:{"Content-Type":"application/json",Authorization:`Bearer ${auth.token}`,"ai-gateway-auth-method":auth.method},
     body:JSON.stringify({model:JEV_MODEL,state,questions}),signal:AbortSignal.timeout(35000),redirect:"error"});
   if(!response.ok)throw new Error(`JEV request failed (${response.status}).`);
   const result=z.object({model:z.string().min(1),answers:z.record(z.string(),z.unknown()),usage:z.object({input_tokens:z.number().optional(),output_tokens:z.number().optional()}).optional()}).parse(await response.json());

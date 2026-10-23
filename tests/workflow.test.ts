@@ -61,3 +61,14 @@ test("an unconnected credits source is unknown, never a fabricated balance",asyn
   try{const result=await workspaceCredits();assert.equal(result.status,"not_configured");assert.equal(result.remainingPercent,null);}
   finally{if(before===undefined)delete process.env.COMPASS_CREDITS_URL;else process.env.COMPASS_CREDITS_URL=before;}
 });
+
+test("hosted model calls use this project's OIDC identity consistently",async()=>{
+  const {gatewayAuthentication}=await import('../lib/gateway.ts');
+  assert.equal(gatewayAuthentication({VERCEL_ENV:"preview",VERCEL_OIDC_TOKEN:"fixture-oidc",AI_GATEWAY_API_KEY:"fixture-key"}).method,"oidc");
+  assert.equal(gatewayAuthentication({AI_GATEWAY_API_KEY:"fixture-key"}).method,"api-key");
+});
+test("blank and recognised placeholder Gateway credentials are not treated as access",async()=>{
+  const {gatewayAuthentication}=await import('../lib/gateway.ts');
+  assert.throws(()=>gatewayAuthentication({AI_GATEWAY_API_KEY:"   "}));
+  assert.throws(()=>gatewayAuthentication({AI_GATEWAY_API_KEY:"replace-me"}));
+});

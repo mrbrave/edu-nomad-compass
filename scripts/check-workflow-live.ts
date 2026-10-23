@@ -1,4 +1,5 @@
 import { reviewCourse } from "../lib/review.ts";
+import { gatewayAuthentication } from "../lib/gateway.ts";
 
 // One synthetic, selected-unit review. No real user context or secrets are emitted.
 const started=performance.now();
@@ -11,7 +12,8 @@ try {
   const grounding=result.assessment.assessments.every(a=>!!a.evidenceId&&result.assessment.units.find(u=>u.code===a.code)?.sections.some(s=>s.id===a.evidenceId));
   const cited=/https:\/\/training\.gov\.au\//.test(result.reply);
   const sequence=(result.stages?.findIndex(s=>s.name==="jev")??-1)<(result.stages?.findIndex(s=>s.name==="explanation")??-1);
-  const report={version:1,runAt:new Date().toISOString(),kind:"live",caseId:"LIVE-01",commit:process.env.VERCEL_GIT_COMMIT_SHA??null,
+  let authentication="unavailable";try{authentication=gatewayAuthentication().method;}catch{}
+  const report={version:1,runAt:new Date().toISOString(),kind:"live",caseId:"LIVE-01",authentication,commit:process.env.VERCEL_GIT_COMMIT_SHA??null,
     durationMs:Math.round(performance.now()-started),evaluator:result.assessment.evaluator.status,replyType:result.replyType,
     stages:result.stages,units:result.assessment.assessments.map(u=>({code:u.code,fit:u.fit,confidence:u.confidence,evidenceId:u.evidenceId})),
     sourceCount:result.assessment.sources.length,grounding,hasOfficialCitation:cited,jevBeforeExplanation:sequence,

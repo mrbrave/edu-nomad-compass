@@ -1,0 +1,109 @@
+{
+  "release": "brand-access-credits",
+  "observations": [
+    {
+      "version": 1,
+      "runAt": "2026-10-23T01:08:34.355Z",
+      "kind": "live",
+      "caseId": "LIVE-01",
+      "commit": "28ec15e3cc711539e096551ed4004df1b21cfa61",
+      "durationMs": 6120,
+      "evaluator": "unavailable",
+      "replyType": "evidence_only",
+      "stages": [
+        {
+          "name": "register",
+          "status": "complete",
+          "durationMs": 2498
+        },
+        {
+          "name": "units",
+          "status": "complete",
+          "durationMs": 1901
+        },
+        {
+          "name": "jev",
+          "status": "unavailable",
+          "durationMs": 1256,
+          "model": "typesafe-ai/jev-1.14.0",
+          "errorCode": "authentication"
+        },
+        {
+          "name": "explanation",
+          "status": "unavailable",
+          "durationMs": 463,
+          "model": "google/gemini-3.8-flash",
+          "errorCode": "authentication"
+        }
+      ],
+      "units": [
+        {
+          "code": "BSBCMM412",
+          "fit": null,
+          "confidence": null,
+          "evidenceId": null
+        }
+      ],
+      "sourceCount": 6,
+      "grounding": false,
+      "hasOfficialCitation": false,
+      "jevBeforeExplanation": true,
+      "outcome": "DEGRADED",
+      "reviewNeeded": "Automated connectivity and sequence check. Explanation quality still requires human review."
+    },
+    {
+      "version": 1,
+      "runAt": "2026-10-23T01:12:04.785Z",
+      "kind": "live",
+      "caseId": "LIVE-01",
+      "authentication": "oidc",
+      "commit": "42b7b98967926c24109b58d6b515dc1c2f6cffec",
+      "durationMs": 4914,
+      "evaluator": "unavailable",
+      "replyType": "evidence_only",
+      "stages": [
+        {
+          "name": "register",
+          "status": "complete",
+          "durationMs": 2269
+        },
+        {
+          "name": "units",
+          "status": "complete",
+          "durationMs": 1858
+        },
+        {
+          "name": "jev",
+          "status": "unavailable",
+          "durationMs": 498,
+          "model": "typesafe-ai/jev-1.14.0",
+          "errorCode": "authentication"
+        },
+        {
+          "name": "explanation",
+          "status": "unavailable",
+          "durationMs": 289,
+          "model": "google/gemini-3.8-flash",
+          "errorCode": "authentication"
+        }
+      ],
+      "units": [
+        {
+          "code": "BSBCMM412",
+          "fit": null,
+          "confidence": null,
+          "evidenceId": null
+        }
+      ],
+      "sourceCount": 6,
+      "grounding": false,
+      "hasOfficialCitation": false,
+      "jevBeforeExplanation": true,
+      "outcome": "DEGRADED",
+      "reviewNeeded": "Automated connectivity and sequence check. Explanation quality still requires human review."
+    }
+  ],
+  "status": "DEGRADED",
+  "temporaryPreviewFlag": "disabled",
+  "notes": "Build-time observations; runtime model operation and human output quality remain unverified."
+}

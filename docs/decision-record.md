@@ -36,3 +36,11 @@ Added a Demo/Studio switch, labelled local sample data, a configurable initial m
 Changes are submitted for human review; no merge or production release is authorised by preparation of this change. The connected hosting integration does not expose this application's project, so hosted variable creation remains blocked. Existing private values must be preserved rather than overwritten with template blanks.
 
 TypeScript checks and all 13 tests passed. A clean production build passed after moving aside stale generated cache data. The managed preview supervisor again stopped before the browser could connect; browser and mobile interaction QA remain unverified. Live AI calls were not made for this release.
+
+## Brand access and workflow candidate 23 October 2026
+
+The hosting connection now resolves the correct application. The original configuration keys are present; private values were not read. The candidate adopts parent-brand navy and gold, larger reading text, a dedicated shared-key entry, explicit credit states and per-request workflow diagnostics. A trusted allowance source is still required; no ledger or personal balance has been invented.
+
+Twenty-two automated tests pass. Two Preview build-time live checks retrieved official evidence but failed model authentication, including the project OIDC revision. Both retained evidence and withheld scores. These are degraded checks, not verified model operation. The Preview test flag was disabled after the runs. Detailed observations are retained in docs/quality.
+
+A new pull request requires human acceptance. No automatic merge or production release is authorised.

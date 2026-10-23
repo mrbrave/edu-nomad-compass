@@ -1,7 +1,88 @@
 [
-  { "key": "COMPASS_DEFAULT_MODE", "value": "demo", "type": "plain", "target": ["production", "preview", "development"], "comment": "Initial workspace only. Valid values: demo or studio. The switch remains available." },
-  { "key": "GEMINI_MODEL", "value": "google/gemini-3.8-flash", "type": "plain", "target": ["production", "preview", "development"], "comment": "Gateway model ID for planning and explanations." },
-  { "key": "JEV_MODEL", "value": "typesafe-ai/jev-1.14.0", "type": "plain", "target": ["production", "preview", "development"], "comment": "Gateway model ID for the structured unit assessment." },
-  { "key": "AI_GATEWAY_API_KEY", "value": "", "type": "encrypted", "target": ["production", "preview", "development"], "comment": "Private value deliberately blank. OIDC can supply hosted Gateway authentication. Never replace an existing real value with this template." },
-  { "key": "COMPASS_ACCESS_TOKEN", "value": "", "type": "encrypted", "target": ["production", "preview", "development"], "comment": "Optional shared Studio access key, deliberately blank. Blank disables this app-level gate. Not individual user authentication." }
+  {
+    "key": "COMPASS_DEFAULT_MODE",
+    "value": "demo",
+    "type": "plain",
+    "target": [
+      "production",
+      "preview",
+      "development"
+    ],
+    "comment": "Initial workspace only. Valid values: demo or studio. The switch remains available."
+  },
+  {
+    "key": "GEMINI_MODEL",
+    "value": "google/gemini-3.8-flash",
+    "type": "plain",
+    "target": [
+      "production",
+      "preview",
+      "development"
+    ],
+    "comment": "Gateway model ID for planning and explanations."
+  },
+  {
+    "key": "JEV_MODEL",
+    "value": "typesafe-ai/jev-1.14.0",
+    "type": "plain",
+    "target": [
+      "production",
+      "preview",
+      "development"
+    ],
+    "comment": "Gateway model ID for the structured unit assessment."
+  },
+  {
+    "key": "AI_GATEWAY_API_KEY",
+    "value": "",
+    "type": "encrypted",
+    "target": [
+      "production",
+      "preview",
+      "development"
+    ],
+    "comment": "Private value deliberately blank. OIDC can supply hosted Gateway authentication. Never replace an existing real value with this template."
+  },
+  {
+    "key": "COMPASS_ACCESS_TOKEN",
+    "value": "",
+    "type": "encrypted",
+    "target": [
+      "production",
+      "preview",
+      "development"
+    ],
+    "comment": "Optional shared Studio access key, deliberately blank. Blank disables this app-level gate. Not individual user authentication."
+  },
+  {
+    "key": "COMPASS_CREDITS_URL",
+    "value": "",
+    "type": "plain",
+    "target": [
+      "production",
+      "preview",
+      "development"
+    ],
+    "comment": "Optional HTTPS balance endpoint controlled by the operator. Blank means no allowance has been connected."
+  },
+  {
+    "key": "COMPASS_CREDITS_TOKEN",
+    "value": "",
+    "type": "encrypted",
+    "target": [
+      "production",
+      "preview",
+      "development"
+    ],
+    "comment": "Optional private credential for the credits source. Never expose to the browser."
+  },
+  {
+    "key": "COMPASS_VERIFY_PIPELINE",
+    "value": "0",
+    "type": "plain",
+    "target": [
+      "preview"
+    ],
+    "comment": "Opt-in live release check. Set to 1 only for a specific Preview branch; one synthetic unit review per build."
+  }
 ]

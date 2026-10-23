@@ -77,7 +77,11 @@ Both default model IDs were verified in the live Gateway catalogue on 22 October
 5. Verify the register explorer, then run one real JEV assessment followed by the Gemini explanation. Verify failures with withheld scores as well.
 6. A commercial RTO service needs hosting terms that permit commercial use. Vercel Hobby is restricted to non-commercial personal use; do not upgrade or add a paid plan automatically.
 
-The connected Vercel API returned a 403 permission error when asked to create the new project. The user subsequently supplied the new GitHub repository above, resolving the repository-creation step. The user reports that the application is running. The connected hosting integration still does not expose this application’s project, so its hosted variables cannot be configured through that connection yet. Do not reuse 1906.au or the older EduNomad project to bypass these blockers.
+The connected Vercel API returned a 403 permission error when asked to create the new project. The user subsequently supplied the new GitHub repository above, resolving the repository-creation step. The user reports that the application is running. The correct hosting project is now accessible. Existing private values are preserved; their presence does not by itself prove live service access. Do not reuse 1906.au or the older EduNomad project to bypass these blockers.
+
+## Candidate additions
+
+The brand/access candidate adds a dedicated shared-key Studio entry, a server-backed credits display with explicit unassigned/unavailable states and a Workflow diagnostics tab. Credits need a trusted allocation source; this release does not implement individual accounts or a billing ledger. See `docs/quality/TEST-PLAN.md` for the development test protocol.
 
 ## Release review
 

@@ -112,7 +112,7 @@ function CompassWorkspace({mode,onModeChange,accessKey,initialCredits,onLock}:{m
       <button className="new-review" onClick={()=>{setMessages([]);setResult(null);setError("");setDraft("");setSidebar(false);}} disabled={busy}><Plus size={16}/> New review <span>⌘</span></button>
       <div className="sidebar-label">YOUR WORKSPACE</div>
       <div className="workspace-link"><Compass size={16}/> Course Compass <span className="small-tag">BETA</span></div>
-      <div className="brief-heading"><span>COURSE BRIEF</span><span className="step-number">01</span></div>
+      <div className="sidebar-content"><div className="brief-heading"><span>COURSE BRIEF</span><span className="step-number">01</span></div>
       <form className="course-form" onSubmit={e=>{e.preventDefault();void loadCourse(context.qualificationCode);}}>
         <label htmlFor="qualification">Qualification or skill set</label>
         <div className="code-input"><input id="qualification" value={context.qualificationCode} onChange={e=>setContext(c=>({...c,qualificationCode:e.target.value.toUpperCase()}))} placeholder="e.g. BSB50420" maxLength={20} disabled={busy||isDemo}/><button title="Load qualification" aria-label="Load qualification" disabled={busy||loading||isDemo}>{loading?<LoaderCircle className="spin" size={15}/>:<ArrowUpRight size={17}/>}</button></div>
@@ -123,6 +123,7 @@ function CompassWorkspace({mode,onModeChange,accessKey,initialCredits,onLock}:{m
       <label htmlFor="cohort">Who are the learners?</label>
       <textarea id="cohort" value={context.cohort} onChange={e=>updateContext("cohort",e.target.value)} maxLength={1200} rows={4} disabled={busy||isDemo}/>
       <p className="brief-hint">{isDemo?"This guided sample uses a fixed brief. Switch to Studio to create your own.":"Your brief guides every assessment. Changing it starts a fresh conversation."}</p>
+      </div>
       <CreditsCard credits={credits} isDemo={isDemo} onRefresh={isDemo?undefined:()=>void refreshCredits()}/>
       <div className="sidebar-bottom"><div className="profile-avatar">EN</div><div>EduNomad {isDemo?"Demo":"Studio"}<small>{isDemo?"Guided sample workspace":"Live course research"}</small></div><ShieldCheck size={17}/></div>
     </aside>

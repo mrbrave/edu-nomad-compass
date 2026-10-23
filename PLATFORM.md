@@ -141,7 +141,7 @@ No variable in this template uses a browser-public prefix. The page passes only 
 2. Review existing variable **names and scopes** before adding missing entries. Preserve existing real values. The JSON file is a template, not an instruction to overwrite secrets with blanks.
 3. Add the three non-sensitive settings for Production, Preview and Development as appropriate. Keep their values consistent during this pilot unless a deliberate environment difference is needed.
 4. Leave private fields blank until the service owner enters the appropriate values through the hosting dashboard. Store real values as secrets; use separate development credentials and avoid sharing production credentials with previews.
-5. If hosted OIDC is available and entitled to use Gateway, the API-key field may remain empty. Confirm Gateway access and credits through a real Studio request. Never set a dummy API key: a non-empty invalid value can take precedence over OIDC.
+5. On a hosted Preview or Production runtime, the application now prefers its project OIDC identity when present. Local/external runtimes can use a real Gateway key. Known placeholder strings and whitespace are not treated as credentials. If hosted OIDC is available and entitled to use Gateway, the API-key field may remain empty. Confirm Gateway access and credits through a real Studio request. Never set a dummy API key. A private value is not validated merely by being present in the environment.
 6. An optional shared access key must be a real private value to enforce the gate. A blank field provides no gate. This key is not per-user authentication or a substitute for tenant isolation.
 7. Hosting environment changes apply to new deployments. Apply the approved release and verify its effective mode and service behaviour. Do not enable auto-merge or skip review.
 
@@ -217,6 +217,10 @@ The Workflow tab records the latest review's stage order, status, duration and a
 For a bounded Preview release check, `COMPASS_VERIFY_PIPELINE=1` on a specific Preview branch runs this test before the build. Production builds ignore this flag. Reset the branch flag to 0 after the check so later documentation builds do not repeat paid calls. A degraded test is reported as such; a successful web build must not be mistaken for a passed AI test.
 
 See `docs/quality/TEST-PLAN.md` and the dated release record for scenarios, observed results and future comparisons. Source releases and model outputs can vary; compare both correctness and review effort rather than expecting identical prose or scores.
+
+## Observed live check outcome
+
+Two bounded Preview build-time checks retrieved six official source records and then received authentication rejection for both JEV and Gemini. The first took 6,120 ms; the OIDC consistency revision took 4,914 ms. Both returned the labelled evidence-only fallback with fit and confidence withheld. Neither is an AI connectivity pass. Successful runtime model operation and human explanation quality remain unverified; a build-time authentication rejection alone does not establish the exact runtime cause. The temporary Preview test flag was reset to 0 after these runs.
 
 ## Validation and known gaps
 

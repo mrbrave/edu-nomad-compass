@@ -64,7 +64,7 @@ The parent site uses its own hosted font setup. This application deliberately us
 
 ### Desktop
 
-The fixed sidebar is 290 px wide, with 30 px top and 22 px side padding. It contains the wordmark, New review action, course brief, credits card and workspace footer. It scrolls when the content exceeds the viewport.
+The fixed sidebar is 290 px wide, with 30 px top and 22 px side padding. It contains the wordmark, New review action, course brief, credits card and workspace footer. The course-brief section scrolls independently so the credits card and workspace footer remain visible.
 
 The remaining main area has a white top bar with a minimum height of 74 px. It includes the breadcrumb, Demo/Studio switch and, where space permits, prototype and register links. The mode notice has 20 px top margin and 30 px side margins. The page introduction uses 30 px padding.
 

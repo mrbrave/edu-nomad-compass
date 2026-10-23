@@ -50,18 +50,37 @@ test('malformed native answers retain their valid usage receipt for settlement',
   assert.equal(b.receipt.inputTokens,9);assert.equal(b.output.finishReason,'INVALID');assert.equal(b.output.text,'');
 }));
 
-test('a response after the old 60-second deadline can still settle without retry',async(t)=>envFixture(['GEMINI_API_KEY'],async()=>{
-  const budgets=new WeakMap<AbortSignal,number>();
-  t.mock.method(AbortSignal,'timeout',(ms:number)=>{const signal=new AbortController().signal;budgets.set(signal,ms);return signal;});
-  let generations=0;
-  const result=await generateGemini({model:'gemini-3.8-flash',instructions:'Fixture',prompt:'Fixture'},async(url,init)=>{
+test('Gemini uses bounded native messages and counts the exact generation body',async(t)=>envFixture(['GEMINI_API_KEY'],async()=>{
+  const budgets:number[]=[];
+  t.mock.method(AbortSignal,'timeout',(ms:number)=>{budgets.push(ms);return new AbortController().signal;});
+  let counted:Record<string,unknown>|undefined,generated:Record<string,unknown>|undefined;
+  const result=await generateGemini({model:'gemini-3.8-flash',instructions:'Host-only instructions',history:[{role:'user',content:'Earlier question'},{role:'assistant',content:'Earlier saved reply'}],prompt:'Latest question and fresh validated guidance'},async(url,init)=>{
+    const body=JSON.parse(String(init?.body));
+    if(String(url).endsWith(':countTokens')){counted=body.generateContentRequest;return Response.json({totalTokens:32768});}
+    generated=body;
+    return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:'Complete bounded response'}]}}],usageMetadata:{promptTokenCount:32768,candidatesTokenCount:4,totalTokenCount:32772}});
+  });
+  assert.deepEqual(budgets,[10000,30000]);
+  const {model,...countedBody}=counted!;assert.equal(model,'models/gemini-3.8-flash');assert.deepEqual(countedBody,generated);
+  assert.deepEqual(generated!.generationConfig,{maxOutputTokens:2048,thinkingConfig:{thinkingLevel:'low'}});
+  assert.deepEqual(generated!.contents,[{role:'user',parts:[{text:'Earlier question'}]},{role:'model',parts:[{text:'Earlier saved reply'}]},{role:'user',parts:[{text:'Latest question and fresh validated guidance'}]}]);
+  assert.equal(result.output.text,'Complete bounded response');assert.equal(result.receipt.outputTokens,4);
+}));
+
+test('the native input limit stops generation before a request is sent',async()=>envFixture(['GEMINI_API_KEY'],async()=>{
+  const {ProviderStageError}=await import('../packages/provider-adapters/contracts.ts');let calls=0;
+  await assert.rejects(generateGemini({model:'gemini-3.8-flash',instructions:'Fixture',prompt:'Fixture'},async(url)=>{calls++;assert.ok(String(url).endsWith(':countTokens'));return Response.json({totalTokens:32769});}),e=>e instanceof ProviderStageError&&e.stage==='preflight'&&e.code==='input_limit'&&e.definitiveRejection);
+  assert.equal(calls,1);
+}));
+
+test('a response-body timeout is distinguishable from a request timeout and keeps its hold',async()=>envFixture(['GEMINI_API_KEY'],async()=>{
+  const {ProviderStageError}=await import('../packages/provider-adapters/contracts.ts');let generations=0;
+  await assert.rejects(generateGemini({model:'gemini-3.8-flash',instructions:'Fixture',prompt:'Fixture'},async(url)=>{
     if(String(url).endsWith(':countTokens'))return Response.json({totalTokens:9});
     generations++;
-    const simulatedLatency=65000;
-    if(simulatedLatency>budgets.get(init!.signal!)!)throw new DOMException('Synthetic delayed response','TimeoutError');
-    return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:'Delayed but complete'}]}}],usageMetadata:{promptTokenCount:9,candidatesTokenCount:4,totalTokenCount:13}});
-  });
-  assert.equal(generations,1);assert.equal(result.output.text,'Delayed but complete');assert.equal(result.receipt.outputTokens,4);
+    return new Response(new ReadableStream({start(controller){controller.error(new DOMException('Synthetic response body timeout','TimeoutError'));}}));
+  }),e=>e instanceof ProviderStageError&&e.stage==='generation'&&e.transportPhase==='body'&&e.code==='timeout'&&!e.definitiveRejection);
+  assert.equal(generations,1);
 }));
 
 test('preflight failures prove generation was not sent, including timeout and malformed counts',async()=>envFixture(['GEMINI_API_KEY'],async()=>{
@@ -82,7 +101,7 @@ test('a generation timeout remains uncertain and is never automatically repeated
   await assert.rejects(generateGemini({model:'gemini-3.8-flash',instructions:'Fixture',prompt:'Fixture'},async(url)=>{
     if(String(url).endsWith(':countTokens'))return Response.json({totalTokens:9});
     generations++;throw new DOMException('Synthetic generation timeout','TimeoutError');
-  }),e=>e instanceof ProviderStageError&&e.stage==='generation'&&e.code==='timeout'&&!e.definitiveRejection);
+  }),e=>e instanceof ProviderStageError&&e.stage==='generation'&&e.transportPhase==='headers'&&e.code==='timeout'&&!e.definitiveRejection);
   assert.equal(generations,1);
 }));
 

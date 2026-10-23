@@ -16,12 +16,12 @@ const config=registry({},new Date('2026-10-23'));
 const receipt=(provider:'typesafe'|'gemini'):UsageReceipt=>({provider,model:provider==='typesafe'?config.evaluator.model:config.generator.model,inputTokens:20,cachedInputTokens:0,outputTokens:5,reasoningTokens:0,nativeUsage:{fixture:true}});
 function fixture(mode='success',existing:unknown=null){
   const events:string[]=[], calls:{action:string;payload:Record<string,unknown>}[]=[];
-  let prompt='';
+  let prompt='';let history:unknown;
   const store:OperationStore={async call<T>(action:string,payload:Record<string,unknown>){events.push(action);calls.push({action,payload});if(action==='admit')return {status:existing?'complete':'new',result:existing,version:0,history:[{role:'user',content:'Stored prior question'}]} as T;if(action==='commit_reply')return payload.result as T;return {ok:true} as T;}};
   const services:ReviewServices={getProduct:async(code)=>code===qualification.code?qualification:unit,
     evaluate:async(request)=>{events.push('typesafe');assert.match(JSON.stringify(request.state),/Stored prior question/);if(mode==='reject')throw new ProviderError('TypeSafe',401);if(mode==='timeout')throw new Error('Network response lost');return {output:{model:config.evaluator.model,answers:mode==='malformed'?{}:answers},receipt:receipt('typesafe')};},
-    generate:async(value)=>{events.push('gemini');prompt=value.prompt;if(mode==='generator_failure')throw new ProviderError('Gemini',429);if(mode==='preflight_timeout'||mode==='generation_timeout')throw new ProviderStageError(mode==='preflight_timeout'?'preflight':'generation',new DOMException('Synthetic timeout','TimeoutError'));return {output:{text:'Fixture explanation.',finishReason:'STOP'},receipt:receipt('gemini')};}};
-  return {events,calls,prompt:()=>prompt,run:()=>executeTurn({requestId:crypto.randomUUID(),conversationId:crypto.randomUUID(),expectedVersion:0,message:input.message,requestHash:'fixture',immutableInput:input},config,store,reviewPolicy(input,config,services))};
+    generate:async(value)=>{events.push('gemini');prompt=value.prompt;history=value.history;if(mode==='generator_failure')throw new ProviderError('Gemini',429);if(mode==='preflight_timeout'||mode==='generation_timeout')throw new ProviderStageError(mode==='preflight_timeout'?'preflight':'generation',new DOMException('Synthetic timeout','TimeoutError'));return {output:{text:'Fixture explanation.',finishReason:'STOP'},receipt:receipt('gemini')};}};
+  return {events,calls,prompt:()=>prompt,history:()=>history,run:()=>executeTurn({requestId:crypto.randomUUID(),conversationId:crypto.randomUUID(),expectedVersion:0,message:input.message,requestHash:'fixture',immutableInput:input},config,store,reviewPolicy(input,config,services))};
 }
 test('fresh validated evaluation is durable before generation and final reply',async()=>{
   const f=fixture(),result=await f.run();
@@ -30,6 +30,9 @@ test('fresh validated evaluation is durable before generation and final reply',a
   assert.equal(result.assessment.assessments[0].fit,80);
   assert.equal(result.replyType,'gemini');
   assert.match(f.prompt(),/"fit":80/);
+  assert.deepEqual(f.history(),[{role:'user',content:'Stored prior question'}]);
+  const projected=JSON.parse(f.prompt());assert.equal(projected.history,undefined);assert.equal(projected.guidance.qualification.grid,undefined);assert.equal(projected.guidance.units[0].grid,undefined);
+  assert.deepEqual(projected.guidance.units[0].sections,unit.sections);assert.deepEqual(projected.guidance.assessments,result.assessment.assessments);
   assert.ok(!/"(?:nativeUsage|rate|cost_nano|API_KEY)"\s*:/.test(f.prompt()));
   assert.equal(f.calls.filter(c=>c.action==='settle_attempt').length,2);
 });

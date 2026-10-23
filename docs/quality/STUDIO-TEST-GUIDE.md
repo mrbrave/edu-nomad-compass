@@ -1,12 +1,12 @@
 # Studio test guide: everyday decisions and digital collaboration
 
-23 October 2026 · Test case STUDIO-BUSINESS-01 · Release candidate 3.1
+23 October 2026 · Test case STUDIO-BUSINESS-01 · Release candidate 3.2
 
 ## Purpose and readiness
 
 Check that a real brief moves from official evidence to JEV evaluation, then Gemini explanation, with traceable usage and a saved reply. This scenario uses a different qualification and units from Demo. It is a two-unit research exercise, not a complete qualification selection.
 
-The earlier usage block has been cleared through an audited conservative allowance adjustment. The timeout and recovery code update is a release candidate awaiting review. The steps below use existing controls; the longer waiting window and revised wording require that update. No successful live Gemini response is claimed by this guide. Run each paid step once and record its result.
+The native-message transport update is a release candidate awaiting review. The earlier 120-second deadline also timed out, so a longer wait is not presented as a confirmed solution. The current candidate uses the reviewed request structure and bounded generation settings. The existing usage block has been cleared through a full-ceiling internal adjustment, with actual provider cost still unknown. No successful live Gemini response is claimed by this guide. Run the paid steps only after the reviewed candidate is released; send each message once and record its result.
 
 Use the Production Studio supplied for this project. Enter only its shared Studio access code. Provider API keys do not belong in the interface or test notes. Confirm **Usage remaining** is available; use **Refresh** if it still shows the previous state.
 
@@ -40,7 +40,7 @@ Copy and send once:
 
 > Compare BSBCRT411 and BSBTEC404 against this brief. For each unit, give the strongest evidence of fit, the main gap and the workplace evidence learners would need. Explain how the units complement each other, and identify checks still required. Keep the explanation within 450 words.
 
-Wait for the result. In the update, a longer-wait message appears after 15 seconds. Gemini has a two-minute response window; course retrieval, evaluation and saving also take time. Keep the tab open. A slow response is not a reason to send again.
+Wait for the result. In the update, a longer-wait message appears after 15 seconds. Gemini has a 30-second response window; course retrieval, evaluation and saving also take time. Keep the tab open. A slow response is not a reason to send again.
 
 Inspect these tabs before continuing:
 

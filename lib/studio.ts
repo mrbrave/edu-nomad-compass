@@ -16,7 +16,7 @@ function liveConfiguration() {
   if (process.env.STUDIO_ENABLE_LIVE !== "true") throw new StudioError("live_disabled", 503);
   if ((process.env.TENANCY_MODE??"single-workspace")!=="single-workspace"||process.env.ENABLE_ADMIN_PROVIDER_SETTINGS==="true") throw new StudioError("misconfigured",503);
   serverKey("TYPESAFE_API_KEY"); serverKey("GEMINI_API_KEY");
-  return {...registry(),evaluationPolicyVersion:"compass-fit-v1",generationPolicyVersion:"compass-explanation-v3",postAssessmentPolicyVersion:"compass-reply-insights-v1"};
+  return {...registry(),evaluationPolicyVersion:"compass-fit-v1",generationPolicyVersion:"compass-explanation-v4",postAssessmentPolicyVersion:"compass-reply-insights-v1"};
 }
 export function requestHash(input: unknown) {
   const stable = (value: unknown): unknown => Array.isArray(value) ? value.map(stable) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,stable(v)])) : value;

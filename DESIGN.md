@@ -1,6 +1,6 @@
 # EduNomad Course Compass UX and UI specification
 
-Version 3.1 | 23 October 2026 | Direct-provider Studio
+Version 3.2 | 23 October 2026 | Direct-provider Studio
 
 ## Design direction
 
@@ -146,7 +146,7 @@ A submission receives an opaque operation ID before transport. An uncertain HTTP
 
 ## Slow responses and usage recovery
 
-After 15 seconds of a live operation, the working message explains that providers are still responding, the explanation can take up to two minutes and the user should keep the tab open without submitting again. It does not show invented stage progress. The request also includes register retrieval, evaluation and saving; two minutes is the generator window, not a promised end-to-end duration.
+After 15 seconds of a live operation, the working message explains that providers are still responding, the explanation has a 30-second provider response window and the user should keep the tab open without submitting again. It does not show invented stage progress. The request also includes register retrieval, evaluation and saving; 30 seconds is the generator window, not a promised end-to-end duration.
 
 A review-required notice explains that no paid retry was made, directs the user to the workspace operator, then to **Refresh** under **Usage remaining** after reconciliation. Refresh reads accounting status only. Pending operation recovery continues to use **Recover status**. All paid submission controls respect the same allowance gate.
 

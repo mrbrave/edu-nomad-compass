@@ -29,10 +29,12 @@ export class ProviderStageError extends Error {
   readonly code: ProviderFailureCode;
   readonly definitiveRejection: boolean;
   readonly status?: number;
-  constructor(stage: ProviderStageError["stage"], error: unknown) {
+  readonly transportPhase?: "headers" | "body";
+  constructor(stage: ProviderStageError["stage"], error: unknown, transportPhase?: ProviderStageError["transportPhase"]) {
     super(`Gemini ${stage} unavailable.`);
     this.name = "ProviderStageError";
     this.stage = stage;
+    this.transportPhase = transportPhase;
     this.code = providerFailureCode(error);
     this.status = error instanceof ProviderError ? error.status : undefined;
     this.definitiveRejection = stage === "preflight" || error instanceof UnsentRequest || error instanceof ProviderError && error.definitiveRejection;

@@ -4,85 +4,134 @@
     "value": "demo",
     "type": "plain",
     "target": [
-      "production",
-      "preview",
       "development"
     ],
-    "comment": "Initial workspace only. Valid values: demo or studio. The switch remains available."
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
   },
   {
-    "key": "GEMINI_MODEL",
-    "value": "google/gemini-3.8-flash",
+    "key": "STUDIO_ENABLE_LIVE",
+    "value": "false",
     "type": "plain",
     "target": [
-      "production",
-      "preview",
       "development"
     ],
-    "comment": "Gateway model ID for planning and explanations."
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
   },
   {
-    "key": "JEV_MODEL",
-    "value": "typesafe-ai/jev-1.14.0",
+    "key": "STUDIO_ACCESS_TOKEN",
+    "value": "",
+    "type": "sensitive",
+    "target": [
+      "development"
+    ],
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
+  },
+  {
+    "key": "EVALUATOR_PROVIDER",
+    "value": "typesafe",
     "type": "plain",
     "target": [
-      "production",
-      "preview",
       "development"
     ],
-    "comment": "Gateway model ID for the structured unit assessment."
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
   },
   {
-    "key": "AI_GATEWAY_API_KEY",
+    "key": "TYPESAFE_API_KEY",
     "value": "",
-    "type": "encrypted",
+    "type": "sensitive",
     "target": [
-      "production",
-      "preview",
       "development"
     ],
-    "comment": "Private value deliberately blank. OIDC can supply hosted Gateway authentication. Never replace an existing real value with this template."
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
   },
   {
-    "key": "COMPASS_ACCESS_TOKEN",
+    "key": "EVALUATOR_MODEL",
+    "value": "jev-1.14.0",
+    "type": "plain",
+    "target": [
+      "development"
+    ],
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
+  },
+  {
+    "key": "GENERATOR_PROVIDER",
+    "value": "gemini",
+    "type": "plain",
+    "target": [
+      "development"
+    ],
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
+  },
+  {
+    "key": "GEMINI_API_KEY",
     "value": "",
-    "type": "encrypted",
+    "type": "sensitive",
     "target": [
-      "production",
-      "preview",
       "development"
     ],
-    "comment": "Optional shared Studio access key, deliberately blank. Blank disables this app-level gate. Not individual user authentication."
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
   },
   {
-    "key": "COMPASS_CREDITS_URL",
+    "key": "GENERATOR_MODEL",
+    "value": "gemini-3.8-flash",
+    "type": "plain",
+    "target": [
+      "development"
+    ],
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
+  },
+  {
+    "key": "GENERATOR_BILLING_TIER",
+    "value": "paid",
+    "type": "plain",
+    "target": [
+      "development"
+    ],
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
+  },
+  {
+    "key": "STUDIO_LEDGER_URL",
     "value": "",
     "type": "plain",
     "target": [
-      "production",
-      "preview",
       "development"
     ],
-    "comment": "Optional HTTPS balance endpoint controlled by the operator. Blank means no allowance has been connected."
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
   },
   {
-    "key": "COMPASS_CREDITS_TOKEN",
+    "key": "STUDIO_LEDGER_TOKEN",
     "value": "",
-    "type": "encrypted",
+    "type": "sensitive",
     "target": [
-      "production",
-      "preview",
       "development"
     ],
-    "comment": "Optional private credential for the credits source. Never expose to the browser."
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
   },
   {
-    "key": "COMPASS_VERIFY_PIPELINE",
-    "value": "0",
+    "key": "TENANCY_MODE",
+    "value": "single-workspace",
     "type": "plain",
     "target": [
-      "preview"
+      "development"
     ],
-    "comment": "Opt-in live release check. Set to 1 only for a specific Preview branch; one synthetic unit review per build."
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
+  },
+  {
+    "key": "ENABLE_POST_REPLY_ASSESSMENT",
+    "value": "true",
+    "type": "plain",
+    "target": [
+      "development"
+    ],
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
+  },
+  {
+    "key": "ENABLE_ADMIN_PROVIDER_SETTINGS",
+    "value": "false",
+    "type": "plain",
+    "target": [
+      "development"
+    ],
+    "comment": "Example only. Scope each real environment explicitly; leave Preview live requests disabled until separately configured."
   }
 ]

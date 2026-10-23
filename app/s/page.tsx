@@ -1,5 +1,2 @@
-import { AgentChat } from "@/app/_components/agent-chat";
-
-export default function NewSessionPage() {
-  return <AgentChat sessionless />;
-}
+import { redirect } from "next/navigation";
+export default function LegacyWorkspace(){ redirect("/"); }

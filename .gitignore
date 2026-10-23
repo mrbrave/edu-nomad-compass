@@ -10,3 +10,5 @@ dist
 *.tsbuildinfo
 
 !.env.example
+
+supabase/.temp/

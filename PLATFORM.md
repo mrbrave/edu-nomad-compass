@@ -1,248 +1,171 @@
-# EduNomad Course Compass — platform guide
+# EduNomad Course Compass platform reference
 
-Version: 2.0 · 23 October 2026 · Brand access and workflow candidate
+Version 3.0 · 23 October 2026 · Direct-provider Studio
 
 ## Executive summary
 
-Course Compass helps Australian training providers explore which units may suit a defined course objective and learner cohort. It brings the course brief, register material, suitability assessment and explanation into one review workspace. The immediate product value is a traceable shortlist that a course designer can inspect and challenge.
+Course Compass helps a course designer compare official units of competency with a clear course brief. It supports research and professional judgement; it does not approve a qualification or replace an RTO's compliance review.
 
-The application has two workspaces. **Demo** demonstrates the experience using one prepared leadership scenario and clearly labelled sample figures. It needs no API keys and makes no register or model requests. **Studio** retrieves current register content and uses two complementary AI steps: a structured assessment first, followed by an explanation grounded in that assessment and the retrieved material.
+**Demo** is a prepared, clearly labelled sample with no external requests. **Studio** uses official register evidence and two separate AI providers. JEV evaluates the evidence against the current brief first. Gemini receives only the validated current guidance and writes the explanation. If evaluation fails or is invalid, generation stops and the workspace shows an evidence-only result with no substitute fit scores.
 
-The platform is a research prototype. It does not approve a complete qualification, confirm an organisation's delivery scope or replace professional course-design judgement. A high suitability score does not establish compliance, and model confidence is not a validated prediction of success.
+Studio now uses direct provider APIs and server-managed credentials. A private application access code opens the shared pilot workspace; it is different from either provider key. The supplied architecture is implemented through separate orchestration, provider, Studio-shell, authentication, persistence and accounting modules.
 
-The next commercial milestone should be a bounded pilot with an experienced course designer. Measure time saved, unsupported recommendations, agreement with expert judgement and the effort required to review the output. Confirm production data access, commercial hosting entitlement and operating cost before expanding delivery.
+A server ledger controls an internal workspace allowance. It reserves a conservative amount before paid work, records actual reported token usage and releases unused allowance. The interface shows percentage and status, keeping monetary details private. This is an estimated internal allowance, not the balance in either provider account.
 
-The first Demo/Studio release has been accepted. This candidate adds the parent-brand visual system, a dedicated Studio entry, an honest credits panel and workflow diagnostics. Publication to the live application requires review and acceptance of the pull request. The documents distinguish implemented behaviour from work still required.
+Requests and replies are durable. Repeating a completed request ID returns its saved result. An unclear network outcome offers status recovery and can retain a cost hold until the operator reconciles it. A separate, optional evaluator action can assess a saved reply without rewriting it.
 
-## Product scope
+The release is verified with synthetic provider responses and database checks. No live AI request is made for this migration. Stored credentials are not evidence of working provider access or response quality. The release record distinguishes automated, database, browser and live-provider observations.
 
-### Supported
+## User journey
 
-- Qualification or skill-set lookup, current release and unit-grid exploration.
-- A fixed objective and cohort for each review request.
-- Up to four selected units, or a bounded agent shortlist from actual register results.
-- Unit evidence retrieval, register checks, JEV assessment and a Gemini explanation.
-- An inspectable process trail and Markdown export.
-- Clearly labelled degraded results if one or both AI services are unavailable.
-- A self-contained Demo with explicit sample provenance.
+1. Explore Demo without an application key or a paid request.
+2. Choose Studio and enter the shared application access code. The server checks every private route; missing access configuration fails closed.
+3. Set the qualification, objectives and cohort. Select up to four units, or begin with a deterministic shortlist from the qualification's official grid.
+4. Submit an explicit review. The server admits the operation only after access, version, configuration and allowance checks.
+5. Read the saved explanation, fit cards, source evidence and Workflow diagnostics. Missing assessment is labelled precisely.
+6. Use **Recover status** after an uncertain response. This reads the operation; it does not resubmit it to a model.
+7. Optionally choose **Assess saved reply**. This uses a separate evaluator call and allowance reservation. The answer remains unchanged.
+8. Use **Lock Studio** or switch to Demo to clear the access code from memory.
 
-### Not implemented
+Opaque identifiers for an unresolved operation are retained in tab-scoped session storage for recovery after re-authentication. Provider keys, application access codes, prompts and replies are not stored there. The visible conversation resets when the workspace is left; server transcript and accounting records remain durable.
 
-Complete qualification assembly; exhaustive packaging-group and exclusion checking; imported-unit level validation; delivery-scope verification; student outcome prediction; user accounts; tenant isolation; persistent chat/history; billing; enforceable per-customer budgets; production-wide quotas; source-change monitoring; calibrated model quality benchmarks.
-
-## How the workspaces operate
-
-| Step | Demo | Studio |
-| --- | --- | --- |
-| Open | Local prepared brief and sample unit list | Retrieve the default qualification from the register |
-| Adjust brief | Fixed scenario, visibly disabled fields | Change course code, objectives and cohort |
-| Choose units | Prepared sample options | Actual qualification grid or verified search results |
-| Review | Return an authored illustration | Retrieve evidence, check facts, evaluate, explain |
-| Inspect | Sample content and fixed figures | Official sections, sources, releases and current evaluation |
-| Export | Labelled Demo sample | Review with evidence and limitations |
-
-Demo is a guided tour, not a free-form AI conversation. Its figures are authored examples and its sources list is empty. Studio never substitutes Demo data when a service fails. Switching modes clears the active workspace; changing the Studio brief clears the current conversation and result. A reload starts again using the configured default mode.
-
-Studio now checks access before loading register data. The configured shared pilot key is enforced by the server, while Demo remains a local sample. This is shared access, not individual user authentication. Hosting protection remains independent and can still protect Demo as well as Studio.
-
-## Architecture
-
-The application uses Next.js, React and TypeScript on a Node.js 24 runtime. The custom web route is the product entry point. Eve tool definitions expose reusable register-search and course-review actions for the optional agent runtime; they are not a second implemented product workflow.
+## System architecture
 
 ```mermaid
-flowchart TD
-    UI["Course workspace"] --> Mode{"Demo or Studio?"}
-    Mode -->|Demo| Sample["Authored local sample"]
-    Sample --> Cards["Labelled sample cards and export"]
-    Mode -->|Studio| API["Validated server API"]
-    API --> Register["Official register retrieval"]
-    Register --> Rules["Deterministic register checks"]
-    Rules --> JEV["Structured JEV assessment"]
-    JEV --> Explain["Gemini explanation"]
-    Explain --> Result["Review, sources and export"]
+flowchart TB
+    UI["Demo and private Studio"] --> API["Same-origin API and access checks"]
+    API --> CORE["Dual-AI orchestrator"]
+    CORE <--> DB["Private transcript and usage ledger"]
+    CORE --> A["Direct TypeSafe evaluator"]
+    A --> VALID["Validate and save guidance"]
+    VALID --> B["Direct Gemini generator"]
+    B --> CORE
 ```
 
-### Studio request sequence
+The host runs on Next.js with a Node.js server runtime. Vercel is the deployment host. Model traffic goes directly to TypeSafe and Google; there is no AI routing intermediary, OIDC model authentication or AI SDK/Eve runtime. Legacy session pages redirect to the main workspace.
 
-1. The browser sends the latest question, fixed course context, selected unit codes and at most ten prior messages to `POST /api/chat`.
-2. The server applies access checks, origin checking, request bounds and schema validation.
-3. It retrieves the qualification and official unit grid. If no units are selected, a Gemini tool agent can shortlist at most four codes from the grid or actual search results. This planning step occurs before the assessment.
-4. It retrieves the units' application, criteria, foundation skills and assessment sections, and checks currency, grid membership and prerequisite availability.
-5. JEV assesses objective fit, cohort fit, evidence sufficiency and the supporting evidence section. Its output is validated before use.
-6. Gemini receives the fresh assessment and official content to explain the recommendation, gaps and next checks. The assessment precedes this final explanation.
-7. The server returns one JSON result containing the reply, assessment and process trail. The browser updates both the conversation and evidence panel. Responses do not stream token by token.
+The persistence adapter calls an authenticated HTTPS bridge in the application's isolated Supabase project. That bridge exposes an allowlisted accounting API and uses its built-in server credential to call a restricted PostgreSQL RPC. It does not proxy arbitrary SQL or AI requests. Only a hash of its separate application-server credential is included in its deployment configuration; the plaintext credential stays in the host's secret environment.
 
-The planner and the final explanation are separate Gemini tasks. “JEV before Gemini” in this product means JEV precedes the final explanation; it does not mean that the optional planning call happens after JEV.
+## Module boundaries
 
-### Main implementation modules
+| Module | Responsibility | Application-specific knowledge |
+| --- | --- | --- |
+| `packages/dual-ai-core` | Typed sequencing, admission, attempt creation, receipt settlement, validation and saved-result recovery | None; host supplies policies |
+| `packages/provider-adapters` | Direct TypeSafe/Gemini requests, bounded transport and native usage normalisation | Vendor schemas only |
+| `packages/usage-ledger` | Versioned model/rate registration, precise costs, conservative ceilings and public usage contract | Supported deployment model registrations |
+| `packages/shared-persistence` | `OperationStore` implementation and server-selected environment scope | No course rules |
+| `packages/shared-auth` | Timing-safe application-code verification and closed access states | No course rules |
+| `packages/studio-shell` | Configurable Studio entry, mode selector and usage display | Host supplies branding and description |
+| `lib/review.ts`, `lib/jev.ts`, `lib/rules.ts`, `lib/training.ts` | Course evidence, fit rubric, guidance projection and official-register rules | Course Compass domain policy |
+| `lib/studio.ts`, `app/api` | Validated product requests, current host configuration and safe responses | Product transport |
+| `supabase/migrations`, `supabase/functions` | Durable tables, atomic operations and authenticated persistence bridge | Private single-tenant pilot |
 
-| Module | Responsibility |
-| --- | --- |
-| `app/page.tsx` | Reads only the default mode and renders the workspace |
-| `app/_components/course-compass.tsx` | Browser interactions, state, mode switch, cards and export |
-| `lib/workspace-mode.ts` | Validates the initial Demo/Studio choice |
-| `lib/demo.ts` | Authored samples with explicit sample provenance; no service calls |
-| `app/api/register/route.ts` | Protected register lookup and search |
-| `app/api/chat/route.ts` | Protected, bounded review request |
-| `lib/contracts.ts` | Input schemas and shared result types |
-| `lib/training.ts` | Official API adapter, content retrieval and short cache |
-| `lib/rules.ts` | Deterministic checks, separate from suitability |
-| `lib/jev.ts` | TypeSafe-compatible Gateway evaluation and strict result parsing |
-| `lib/review.ts` | Live workflow, planning, explanation and explicit failure handling |
-| `lib/http.ts` | Shared access key, origin/rate checks and safe errors |
-| `lib/workspace.ts` | Validated allowance source with percentage-only output |
-| `app/_components/workspace-access.tsx` | Studio entry and credits presentation |
-| `agent/tools/` | Reusable Eve search/review definitions |
+These are source modules in one repository, not separately published packages. A new host can replace the policy and `OperationStore`; adding another model requires an adapter, validated usage semantics and an explicit rate registration. It is not enabled merely by changing an environment string.
 
-## Data and assessment semantics
+## Turn and state contracts
 
-### Register access
+`POST /api/ai/turn` accepts `requestId`, `conversationId`, `expectedVersion`, `message`, fixed course context and at most four unit codes. All identifiers are validated UUIDs. A stable server hash covers immutable domain inputs and the expected version. Browser-supplied history never replaces saved messages.
 
-The adapter uses structured JSON endpoints documented through the official register's Swagger interface. It does not scrape rendered pages. It retrieves training components, current releases, content bundles, unit grids, prerequisites and search results from a fixed official host.
+The server pins models, adapter/schema versions, prompt-policy versions and rate cards at admission. It locks the environment workspace, checks available allowance and records the operation before model work. Provider attempts have independent UUIDs and are written before outbound requests. Model A's native result is mapped to validated domain guidance before Model B can run.
 
-Records carry retrieval time, release information and official links. The cache lasts five minutes per process. A failed prerequisite request is distinct from a verified empty prerequisite list. Public endpoint availability does not, by itself, establish commercial support, permitted reuse, service levels or rate-limit guarantees; confirm the supported integration arrangement before selling the service.
+The complete transcript is stored separately from working context. Only the latest ten saved messages, each bounded to 7,000 characters, enter a turn's working context. Official evidence is freshly retrieved for each new review. Prior scores are not reused as current evidence or substituted for the actual transcript.
 
-### Assessment outputs
+A reply and its two transcript messages commit atomically with one conversation-version increment. A repeated ID with the same hash returns the existing result; different content using that ID is a conflict. Another worker cannot admit a concurrent paid operation against the same environment workspace. Different environments use separate records.
 
-| Output | Interpretation |
-| --- | --- |
-| Objective fit | A 0–4 rubric score normalised to a 0–100 index |
-| Cohort fit | A separate rubric index against the described cohort |
-| Native confidence | Model-provided confidence; not calibrated for this service |
-| Evidence sufficiency | A JEV Noul result used to withhold poorly grounded fit values |
-| Supporting section | A Choice result constrained to retrieved section IDs or “none” |
-| Register status | Deterministic core/listed/unlisted classification, independent of fit |
+## Provider contracts
 
-The parser validates score ranges, probability distributions, confidence and source IDs. A sufficiency result below 0.75 or missing supporting section withholds fit. Recommendation labels combine fit, confidence, sufficiency and blockers; they are discussion aids, not eligibility decisions. An unlisted unit requires importing review rather than automatic acceptance or rejection. Core requirements remain compulsory irrespective of a low suitability score.
+| Role | Native provider model | Direct endpoint | Output handling |
+| --- | --- | --- | --- |
+| Evaluator | `jev-1.14.0` | `https://api.typesafe.ai/v1/systemone` | Score, Choice and Noul answers; confidence and probability distributions validated; actual source references required |
+| Generator | `gemini-3.8-flash` | Google `models/...:countTokens` then `models/...:generateContent` | Token preflight; bounded output; complete visible reply required; thought text excluded |
+| Post-reply assessor | Same pinned evaluator registration | TypeSafe endpoint | Separate Noul insights about the saved exchange; never updates its reply |
 
-The product's evidence sufficiency threshold and recommendation logic require expert evaluation. They are implementation choices, not regulatory thresholds or validated scientific cut-offs.
+The deterministic research shortlist uses verified official grid codes and title terms. It is a starting point, not suitability scoring. Imported units can be selected explicitly and retain importing-review warnings. Current official-register integration is a prototype adapter; supported commercial access and reuse still require confirmation.
+
+Fit indices are rubric values normalised to 0–100. They are neither compliance probabilities nor calibrated guarantees of learner outcomes. A core unit remains compulsory regardless of its fit score. Missing evidence, native answer validation failure or missing supporting sections cannot produce an invented fit score.
+
+## Usage and credits engine
+
+The private relational ledger stores environment workspaces, allocations, conversations, operations, messages, model attempts, immutable charges, reconciliation entries and independent assessments. Every relevant record is scoped to the pilot tenant and environment. This is a single-tenant shared pilot, not a released multi-customer tenancy system.
+
+Costs use USD nanodollars, with one USD represented by 1,000,000,000 internal units. Calculation uses checked token quantities and `BigInt`; precise amounts cross internal JSON boundaries as strings. Public responses contain percentages and status only.
+
+Gemini prompt usage includes cached input. The normaliser charges cached input once, and accounts for both response and thinking tokens. Unsupported tool-use or inconsistent token totals fail reconciliation checks. TypeSafe currently charges input tokens; output usage remains recorded even where its registered rate is zero. The selected rate card is saved for each attempt. New announced rates affect newly admitted operations; they do not rewrite existing receipts.
+
+The conservative reservation covers evaluator and generator envelopes. Realised usage settles the relevant portion before model output is interpreted. Therefore a parsing failure still retains its known charge. Network ambiguity or a missing usable receipt retains a possible-cost hold; the app never assumes a browser timeout means no charge occurred. Unstarted stages are released when a degraded reply commits.
+
+Available allowance is allocation minus known charges, reconciled additional costs and active holds. A positive percentage can still be insufficient for a conservative full-turn reservation. Percentage may rise after a hold is released. An exhausted, unassigned, unavailable or review-required account cannot start another paid operation.
+
+## Private access and safe projections
+
+The same-origin API verifies the application code on register, workspace, turn, independent-assessment and recovery routes. Constant-time comparison is used. POST requests have origin, size and process-local rate guards. Database admission provides the durable single-workspace concurrency and allowance controls.
+
+Provider keys never reach the browser or prompts. Ordinary responses omit monetary amounts, rates, provider response IDs, raw receipts and backend credentials. The bridge has its own server-only bearer credential and verifies its hash; disabling JWT verification for that function does not disable its application authentication. The PostgreSQL RPC is `SECURITY INVOKER`, with execution denied to browser roles. Private tables have RLS and explicit privileged-backend policies, with no browser grants.
+
+The existing pilot access code remains supported through the `COMPASS_ACCESS_TOKEN` compatibility alias when `STUDIO_ACCESS_TOKEN` is absent. No credential is copied from another product. Hosting protection remains independent of the app code.
 
 ## Environment configuration
 
-The current application uses **AI Gateway** for both model services. Configure the variables actually read by this code; direct provider credentials would require a separate integration change. Private values are intentionally blank in `.env.example` and `config/vercel-environment.example.json`.
+All secrets are server-only. See `.env.example` and `config/vercel-environment.example.json`; neither contains real credentials or infrastructure identifiers.
 
-| Variable | Classification | Template value | Purpose |
-| --- | --- | --- | --- |
-| `COMPASS_DEFAULT_MODE` | Non-sensitive config | `demo` | Initial workspace: `demo` or `studio`; invalid/missing values select Demo |
-| `GEMINI_MODEL` | Non-sensitive config | `google/gemini-3.8-flash` | Planning and explanation model ID |
-| `JEV_MODEL` | Non-sensitive config | `typesafe-ai/jev-1.14.0` | Structured evaluation model ID |
-| `AI_GATEWAY_API_KEY` | Private | Blank | Optional server-side Gateway credential; hosted OIDC can be used instead |
-| `COMPASS_ACCESS_TOKEN` | Private | Blank | Optional shared key for Studio APIs; blank disables this app-level gate |
-| `COMPASS_CREDITS_URL` | Server configuration | Blank | Optional trusted HTTPS allowance source |
-| `COMPASS_CREDITS_TOKEN` | Private | Blank | Optional credential for that source |
-| `COMPASS_VERIFY_PIPELINE` | Preview test flag | `0` | Opt-in branch-specific live check; ignored in Production |
-| `VERCEL_OIDC_TOKEN` | Platform-managed private value | Do not create manually | Short-lived hosted authentication when provided by the platform |
-
-No variable in this template uses a browser-public prefix. The page passes only the default mode. An authorised workspace endpoint can additionally return a normalised allowance percentage and timestamp; it does not return private budgets or source credentials. A mode change does not change deployment configuration or security policy.
-
-### Hosted setup
-
-1. Select this application's hosting project and check its linked repository. Do not apply this template to another application.
-2. Review existing variable **names and scopes** before adding missing entries. Preserve existing real values. The JSON file is a template, not an instruction to overwrite secrets with blanks.
-3. Add the three non-sensitive settings for Production, Preview and Development as appropriate. Keep their values consistent during this pilot unless a deliberate environment difference is needed.
-4. Leave private fields blank until the service owner enters the appropriate values through the hosting dashboard. Store real values as secrets; use separate development credentials and avoid sharing production credentials with previews.
-5. On a hosted Preview or Production runtime, the application now prefers its project OIDC identity when present. Local/external runtimes can use a real Gateway key. Known placeholder strings and whitespace are not treated as credentials. If hosted OIDC is available and entitled to use Gateway, the API-key field may remain empty. Confirm Gateway access and credits through a real Studio request. Never set a dummy API key. A private value is not validated merely by being present in the environment.
-6. An optional shared access key must be a real private value to enforce the gate. A blank field provides no gate. This key is not per-user authentication or a substitute for tenant isolation.
-7. Hosting environment changes apply to new deployments. Apply the approved release and verify its effective mode and service behaviour. Do not enable auto-merge or skip review.
-
-**Connection verified on 23 October 2026:** the correct hosting project is now accessible. The five original configuration keys are present across the configured environments. Private values were not read or copied. Configuration presence alone does not establish successful model calls; the separate live workflow test records that result.
-
-### Workspace credits
-
-The sidebar displays a shared workspace allowance rather than a personal balance. Demo says “No credits needed”. Studio shows “Credits not assigned” until a trusted allowance source is connected; a missing or failed source is never presented as zero.
-
-`COMPASS_CREDITS_URL` is an optional operator-controlled HTTPS endpoint. It returns `{ total, remaining, updatedAt }`, where total and remaining use the same credit units and updatedAt is an ISO timestamp. `COMPASS_CREDITS_TOKEN` is an optional server-only credential for that source. The application validates the response and exposes only a rounded-down remaining percentage and timestamp, with a separate less-than-one-percent indication for positive balances below 1%. Source values may be credit units; monetary budgets must remain server side.
-
-This release does not provision or maintain a billing ledger. The source must own allocation and consumption. Refreshing the card does not deduct credits, and the card does not enforce a spend cap. Individual user balances require identity, tenant ownership and a durable ledger. No allowance source was connected during preparation, so the genuine initial Studio state is not assigned.
-
-### Local setup
-
-```bash
-npm ci
-cp .env.example .env.local
-npm run dev
-```
-
-Node.js 24 is required. Demo works with the private fields blank. For live local AI, enter this application's own Gateway credential into the ignored local file or use the platform's supported local OIDC workflow. Do not paste keys into source, design tools, issues, pull requests or chat.
-
-The environment template is committed; `.env.local`, platform link files and dependency/build directories are ignored. A pulled environment file can overwrite an existing local file; back up private local configuration securely before pulling. Hosted secrets may not be returned by a pull.
-
-## API and failure behaviour
-
-| Interface | Behaviour |
+| Variable | Purpose |
 | --- | --- |
-| `GET /api/workspace` | Check Studio access and return safe credits state |
-| `GET /api/register?code=...` | Retrieve a product by validated code |
-| `GET /api/register?q=...` | Search the official register |
-| `POST /api/chat` | Review the submitted context and up to four units; optional bounded history |
-| 401 | Shared access key required; browser offers a password field |
-| 400 | Invalid request/schema or malformed JSON |
-| 413 | Chat request exceeds the route's body bound |
-| 429 | Per-process review limit reached; retry guidance returned |
-| 502 | Upstream/processing request failure with a filtered message |
+| `COMPASS_DEFAULT_MODE` | Initial Demo or Studio view; does not authorise access |
+| `STUDIO_ENABLE_LIVE` | Explicit paid-request gate; disabled by default |
+| `STUDIO_ACCESS_TOKEN` | Application access code; compatibility alias described above |
+| `EVALUATOR_PROVIDER`, `EVALUATOR_MODEL`, `TYPESAFE_API_KEY` | Direct evaluator configuration |
+| `GENERATOR_PROVIDER`, `GENERATOR_MODEL`, `GEMINI_API_KEY` | Direct generator configuration |
+| `GENERATOR_BILLING_TIER` | Verified standard paid rate registration |
+| `STUDIO_LEDGER_URL`, `STUDIO_LEDGER_TOKEN` | Server-only authenticated persistence adapter |
+| `TENANCY_MODE` | Supported value `single-workspace`; other values fail closed |
+| `ENABLE_POST_REPLY_ASSESSMENT` | Optional, explicit extra evaluator action |
+| `ENABLE_ADMIN_PROVIDER_SETTINGS` | Remains false; browser key administration is not implemented |
 
-No selected units plus missing AI access prevents autonomous shortlisting; the user can select units to obtain evidence independently. If JEV fails, fit scores are withheld and the result explains the missing assessment. If Gemini fails, an evidence summary is returned. A successful API response can therefore contain a deliberately degraded review; inspect evaluator status and reply type, not only HTTP status.
+The supplied template's session-signing secret, secret-manager reference and direct database URL are unnecessary for this memory-only access-code strategy and HTTPS persistence adapter. They are not presented as active controls. Budget configuration is an audited ledger allocation, not a mutable environment balance. Provider keys are stored separately, exactly as supplied; validity is unverified without a separately authorised live check.
 
-## Privacy, security and retention
+Production has its own allowance record. Preview and Development remain separately disabled and unallocated. Before future live Preview work, provision explicit test credentials and an isolated allowance. A Preview request cannot use Production ledger records through a client-supplied workspace ID.
 
-- Conversations, course context, results and any shared access key live in browser memory. Refreshing or switching modes clears the workspace. The application has no persistent conversation database.
-- Studio sends the course brief, question, bounded history and retrieved evidence to its server. Model calls send the relevant content to the configured Gateway/provider route. Use de-identified pilot material and establish appropriate processing arrangements before handling restricted information.
-- API credentials remain server side. Demo contains no keys, private records or personal names.
-- The shared access-key check uses timing-safe comparison. POST requests have an origin check. Register hosts are fixed; the adapter bounds requests and converts official HTML into inert text.
-- Rate limiting is per process. It is not a durable spend cap or distributed abuse defence. Exported reviews are created in the user's browser; they can include the user's own entered brief and conversation content.
-- Hosting/provider logs and retention are outside browser-memory behaviour. Review those separately; the absence of an application database does not guarantee zero provider retention.
+## Endpoint map
 
-## Operating model and release process
-
-An operator maintains service access, hosting and model configuration. A course designer defines the brief, reviews the evidence, performs remaining compliance checks and owns the final course decision. Product stewardship should track service quality, unsupported recommendations and review effort.
-
-Changes should be prepared on a feature branch, validated and submitted as a pull request. Review the changes and preview before accepting the merge. Do not merge automatically. Environment changes also require an explicit change record; keep real values out of that record.
-
-For each accepted release, check Demo without credentials; switch to Studio; verify an official product load; test an authorised review; inspect evaluator/source information; test a degraded result; export a review; and inspect mobile layout. A successful build does not prove model access or output quality.
-
-## Cost and capacity
-
-Demo does not call paid AI or register services. Studio can make a planning call, a structured JEV call and an explanation call, depending on the selection. Up to four units and bounded history help constrain request size, but they do not implement customer budgets. Provider balances, Gateway credits and hosting usage are separate operational concerns. Verify actual account terms and use before estimating a paid service margin.
-
-Gateway model IDs can change. Confirm supported IDs, entitlement, pricing and model behaviour before adopting a new default. Do not automatically upgrade hosting or enable paid services as part of this release.
-
-## Workflow diagnostics and development tests
-
-The Workflow tab records the latest review's stage order, status, duration and available model/token metadata. It does not record a persistent audit history or disclose prompts, credentials, private provider payloads or account balances. The optional planner can run before JEV; the final explanation receives the new JEV result or its explicit unavailable state.
-
-`tests/workflow.test.ts` verifies the orchestration using synthetic services. It covers normal JEV-to-Gemini handover, JEV failure with withheld scores, Gemini failure with retained evaluation, both failures, and autonomous planning. Separate checks validate credits normalisation and the unconfigured state. These are integration-contract tests, not measurements of actual model quality.
-
-`npm run test:workflow:live` runs one synthetic selected-unit review using the configured runtime credentials. It prints one sanitised `COMPASS_LIVE_CHECK` record containing statuses, timing, model IDs, token counts, fit/source references and outcome. It does not print credentials or a private error payload. It must be run only with authorised service access.
-
-For a bounded Preview release check, `COMPASS_VERIFY_PIPELINE=1` on a specific Preview branch runs this test before the build. Production builds ignore this flag. Reset the branch flag to 0 after the check so later documentation builds do not repeat paid calls. A degraded test is reported as such; a successful web build must not be mistaken for a passed AI test.
-
-See `docs/quality/TEST-PLAN.md` and the dated release record for scenarios, observed results and future comparisons. Source releases and model outputs can vary; compare both correctness and review effort rather than expecting identical prose or scores.
-
-## Observed live check outcome
-
-Two bounded Preview build-time checks retrieved six official source records and then received authentication rejection for both JEV and Gemini. The first took 6,120 ms; the OIDC consistency revision took 4,914 ms. Both returned the labelled evidence-only fallback with fit and confidence withheld. Neither is an AI connectivity pass. Successful runtime model operation and human explanation quality remain unverified; a build-time authentication rejection alone does not establish the exact runtime cause. The temporary Preview test flag was reset to 0 after these runs.
-
-## Validation and known gaps
-
-Run `npm run verify` for TypeScript, focused tests and the production build. `npm run test:register` separately exercises the live official adapter. The tests cover deterministic rules, malformed/unsupported evaluator output, request bounds, shared access control and Demo sample provenance.
-
-Live Gemini/JEV operation and deployed end-to-end behaviour require the correct application's service access. A complete qualification-compliance engine, durable quotas, user management, calibrated evaluation, operational monitoring and comprehensive accessibility verification remain future work. See the pull request for the checks actually completed for this release; do not infer a passed live check from these instructions.
-
-## Suggested product sequence
-
-| Stage | Outcome | Evidence needed to proceed |
+| Endpoint | Operation | Model call |
 | --- | --- | --- |
-| Guided demonstration | Stakeholders understand the review journey | Clear distinction between samples and live outputs |
-| Expert pilot | A traceable shortlist saves review effort | Expert agreement, error examples and measured time saved |
-| Operational readiness | Real users can be served reliably | Supported data access, identity, quotas, monitoring and cost model |
-| Broader product | Repeatable value across courses and cohorts | Validated quality, viable unit economics and support capability |
+| `GET /api/workspace` | Access check and safe usage projection | None |
+| `GET /api/studio/snapshot` | Alias for the workspace projection | None |
+| `GET /api/studio/usage` | Safe usage-only projection | None |
+| `GET /api/register` | Official evidence retrieval after access check | None |
+| `POST /api/ai/turn` | Evaluator → validated guidance → generator | Explicit admitted operation only |
+| `POST /api/chat` | Compatibility alias for the same guarded turn handler | Same ledger contract |
+| `POST /api/ai/assessment` | Independent evaluation of a committed exchange | Evaluator only |
+| `GET /api/ai/operations/:id` | Recover safe status/result | None |
 
-## Public technical references
+There is no unauthenticated model route or browser-facing allocation, key-rotation or reconciliation API. The unlock screen verifies the code through the workspace endpoint; it does not create a cookie session. Operator-only procedures are documented in `docs/operations.md`.
 
-- [Official register API documentation](https://training.gov.au/swagger/index.html)
-- [Official register integration guidance](https://training.gov.au/support/connecting-your-system-traininggovau-apis-1)
-- [AI Gateway documentation](https://vercel.com/docs/ai-gateway)
-- [Hosting environment variables](https://vercel.com/docs/environment-variables)
-- [Next.js environment variables](https://nextjs.org/docs/app/guides/environment-variables)
+## Recovery and operations
 
-These are reference entry points. Service terms and provider features must be checked at the time of production adoption.
+A recoverable result is read by operation ID and authorised environment. Unknown or pending results are never automatically submitted again. If cost is uncertain or a worker stops mid-operation, new paid requests remain blocked until the operator reviews provider reporting and records a reconciliation. Existing known charges remain immutable.
+
+The private operator-only reconciliation procedure accepts the verified additional cost, evidence/reason and operator reference. It records an adjustment, resolves uncertain attempts and releases the hold. Ordinary Studio users and the bridge cannot invoke it. Duplicate reconciliation of a resolved operation is rejected.
+
+Shared-code access does not identify an individual. Individual authentication, revocable sessions, customer roles, tenant routing, self-service administration, automated invoice reconciliation, retention automation and operational alerting remain future work. Records currently persist until an authorised operator applies a retention/deletion process; automatic expiry is not configured. These limits are explicit rather than described as production-ready capabilities.
+
+## Verification and evolution
+
+`npm run verify` checks types, deterministic tests and a production build. The test preload disables networking; provider transports are synthetic. Builds contain no live-model check. `tests/ledger.sql` exercises real transaction logic using rolled-back fixtures. Separate bridge and concurrency checks make no AI request.
+
+The current quality record is `docs/quality/2026-10-23-direct-providers.md`. Earlier Gateway observations remain historical evidence and are not connectivity results for this architecture. No new provider output, model quality, latency benchmark or invoice reconciliation is claimed from mock tests.
+
+## Feedback on the supplied method
+
+The strongest design choices are explicit evaluator-to-generator state transfer, separate provider adapters, receipt-first accounting and independent post-reply analysis. They make failure cases reviewable and prevent an explanation from silently depending on stale evaluation.
+
+Conservative reservations deliberately trade some utilisation for cost control. Recovery needs both saved operations and a usable operator reconciliation path; a retry button alone would be insufficient. The optional final evaluation is an extra paid operation, so the UI makes that choice explicit.
+
+The reusable modules now separate domain policy from transport and accounting. The remaining boundary is product maturity: a private shared pilot can exercise the method, while a customer-facing multi-tenant product still requires individual identity, permissions, retention operations and reconciliation against real provider receipts. Live model validation is the next evidence-gathering step when authorised.
+
+## Official technical references
+
+- [TypeSafe API](https://docs.typesafe.ai/api/system-one) and [model/pricing reference](https://docs.typesafe.ai/models).
+- [Gemini generation API](https://ai.google.dev/api/generate-content), [token counting](https://ai.google.dev/api/tokens) and [pricing](https://ai.google.dev/gemini-api/docs/pricing).
+- [Supabase database functions](https://supabase.com/docs/guides/database/functions) and [Edge Functions](https://supabase.com/docs/guides/functions).
+
+Provider documentation and text pricing were checked on 23 October 2026. Revalidate the registry before expanding supported models or modalities.

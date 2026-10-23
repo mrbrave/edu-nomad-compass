@@ -21,7 +21,7 @@ export async function meteredCall(store: OperationStore, operationId: string, ro
   catch (error) {
     const definitive = error instanceof UnsentRequest || (error instanceof ProviderError || error instanceof ProviderStageError) && error.definitiveRejection;
     await store.call("reject_attempt", { operationId, attemptId, definitive });
-    console.warn(JSON.stringify({event:"studio_provider_failure",operationId,attemptId,role,code:failureCode(error),stage:error instanceof ProviderStageError?error.stage:role,definitive,...(error instanceof ProviderError || error instanceof ProviderStageError?{providerStatus:error.status}:{})}));
+    console.warn(JSON.stringify({event:"studio_provider_failure",operationId,attemptId,role,code:failureCode(error),stage:error instanceof ProviderStageError?error.stage:role,definitive,...(error instanceof ProviderError || error instanceof ProviderStageError?{providerStatus:error.status}:{}),...(error instanceof ProviderStageError?{transportPhase:error.transportPhase}:{})}));
     throw error;
   }
   try {

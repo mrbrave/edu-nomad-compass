@@ -1,6 +1,6 @@
 # EduNomad Course Compass platform reference
 
-Version 3.1 · 23 October 2026 · Direct-provider Studio
+Version 3.2 · 23 October 2026 · Direct-provider Studio
 
 ## Executive summary
 
@@ -14,9 +14,11 @@ A server ledger controls an internal workspace allowance. It reserves a conserva
 
 Requests and replies are durable. Repeating a completed request ID returns its saved result. An unclear network outcome offers status recovery and can retain a cost hold until the operator reconciles it. A separate, optional evaluator action can assess a saved reply without rewriting it.
 
-The observed user request completed JEV evaluation and recorded its native usage, then Gemini exceeded the application's 60-second response timeout without returning a usage receipt. The usage block has been cleared through an audited upper-bound internal allowance adjustment. Actual Gemini invoice usage remains unknown. No new paid request was made during this repair.
+Two observed user turns completed JEV evaluation but exceeded the application's Gemini generation deadline: first 60 seconds, then approximately 121 seconds after the earlier timeout change was deployed. Increasing the wait did not establish a working explanation path. Both unresolved holds were reconciled using full-ceiling internal allowance adjustments, preserving evaluator charges and saved evidence. Actual Gemini invoice usage remains unknown.
 
-The timeout and recovery update is a release candidate awaiting review. It passes type checks, 43 deterministic tests, a model-free build and rollback-only database recovery checks. A longer response window reduces premature client cancellation; it does not guarantee provider availability. End-to-end Gemini success remains unverified.
+The current candidate changes the request structure and limits to the separately reviewed working transport pattern. It sends saved conversation turns as native user/model messages, supplies the fresh validated course guidance once, and omits the unrelated qualification-unit catalogue from the explanation payload. Course prompts, selected-unit evidence, access and accounting remain specific to this application.
+
+The candidate passes type checks, 45 network-disabled tests and a model-free production build. No new paid AI request was made during this repair. End-to-end Gemini success remains unverified until an authorised live acceptance run; the candidate is awaiting release review.
 
 ## User journey
 
@@ -154,7 +156,7 @@ Shared-code access does not identify an individual. Individual authentication, r
 
 `npm run verify` checks types, deterministic tests and a production build. The test preload disables networking; provider transports are synthetic. Builds contain no live-model check. `tests/ledger.sql` exercises real transaction logic using rolled-back fixtures. Separate bridge and concurrency checks make no AI request.
 
-The current recovery record is `docs/quality/2026-10-23-studio-recovery.md`; the initial migration record is `docs/quality/2026-10-23-direct-providers.md`. Earlier Gateway observations remain historical evidence and are not connectivity results for this architecture. No new provider output, model quality, latency benchmark or invoice reconciliation is claimed from mock tests.
+The current transport record is `docs/quality/2026-10-23-gemini-transport.md`. The earlier recovery record is `docs/quality/2026-10-23-studio-recovery.md`; the initial migration record is `docs/quality/2026-10-23-direct-providers.md`. These earlier records describe their own revisions. Earlier Gateway observations remain historical evidence and are not connectivity results for this architecture. No new provider output, model quality, latency benchmark or invoice reconciliation is claimed from mock tests.
 
 ## Practical Studio test case
 
@@ -164,9 +166,13 @@ The qualification grid, unit currency and prerequisite lookups were retrieved fr
 
 ## Timeout and failure contract
 
-Gemini token counting is bounded to 15 seconds; generation is bounded to 120 seconds without automatic retry. The turn routes allow 300 seconds for the complete sequence and persistence. An admitted worker is stale after six minutes, leaving a margin beyond the route budget. The longer window requires the accompanying ledger migration; it was tested transactionally and is not yet applied in Production.
+The candidate uses the native `generateContent` endpoint with the server API key in its header. Saved assistant turns use the provider's `model` role; user turns remain `user`. The current question and validated course guidance form the final user message. History is not duplicated inside that message. Token counting receives exactly the same body, including system instructions and generation settings, plus the required model identifier.
 
-A failed token-count preflight proves that no generation request was sent. Its attempt is rejected and released, while any already settled evaluator usage remains charged. A timeout after generation is sent, or an unusable usage receipt, still retains an uncertain hold. Failure logs contain opaque operation/attempt IDs, role, stage, safe category and HTTP status only; they exclude prompts, provider bodies, keys and amounts.
+The input limit is 32,768 tokens, output limit 2,048 tokens, and thinking setting `low`. Token counting has a 10-second deadline and generation a 30-second deadline, with no automatic retry. These are the reviewed reference transport settings, not a promised end-to-end latency. The turn routes retain their 300-second ceiling for the complete sequence and persistence. The model stays `gemini-3.8-flash`; credentials, native usage settlement and conservative financial ceilings are unchanged.
+
+The previously merged recovery migration defines a six-minute stale-worker threshold, but the Production database still used three minutes at the last read on 23 October 2026. That migration remains a separate release prerequisite; it is not applied by a Git merge. This transport update introduces no schema migration.
+
+A failed token-count preflight proves that no generation request was sent. Its attempt is rejected and released, while any already settled evaluator usage remains charged. A timeout after generation is sent, or an unusable usage receipt, still retains an uncertain hold. Failure logs contain opaque operation/attempt IDs, role, stage, transport phase, safe category and HTTP status only; they exclude prompts, provider bodies, keys and amounts. Generation failures distinguish waiting for headers from reading the response body, helping identify a future interruption without logging source content.
 
 ## Feedback on the supplied method
 

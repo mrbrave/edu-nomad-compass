@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { type ProviderResult, readProviderJson, serverKey, UnsentRequest } from "./contracts.ts";
+import { type ProviderResult, ProviderStageError, readProviderJson, serverKey, UnsentRequest } from "./contracts.ts";
+
+export const GEMINI_GENERATION_TIMEOUT_MS = 120000;
 
 const token = z.number().int().nonnegative().safe();
 const usageSchema = z.object({ promptTokenCount: token, cachedContentTokenCount: token.default(0), candidatesTokenCount: token.default(0), thoughtsTokenCount: token.default(0), toolUsePromptTokenCount: token.default(0), totalTokenCount: token });
@@ -18,15 +20,29 @@ export async function generateGemini(input: { model: string; instructions: strin
   const content = { systemInstruction: { parts: [{ text: input.instructions }] }, contents: [{ role: "user", parts: [{ text: input.prompt }] }] };
   if (Buffer.byteLength(JSON.stringify(content), "utf8") > 120000) throw new UnsentRequest("The review contains too much evidence. Select fewer units.");
   // Preflight runs only inside an admitted user operation, never during a build.
-  const preflight = await fetcher(`${root}:countTokens`, { method: "POST", headers, body: JSON.stringify({ generateContentRequest: { model: `models/${input.model}`, ...content } }), redirect: "error", signal: AbortSignal.timeout(15000) });
-  const count = z.object({ totalTokens: token }).parse(await readProviderJson(preflight, "Gemini"));
-  if (count.totalTokens > 128000) throw new UnsentRequest("The review exceeds this Studio's context limit.");
-  const response = await fetcher(`${root}:generateContent`, { method: "POST", headers, body: JSON.stringify({ ...content, generationConfig: { maxOutputTokens: 4096, thinkingConfig: { thinkingLevel: "LOW" } } }), redirect: "error", signal: AbortSignal.timeout(60000) });
-  const raw = z.object({ usageMetadata: z.unknown() }).passthrough().parse(await readProviderJson(response, "Gemini"));
+  try {
+    const preflight = await fetcher(`${root}:countTokens`, { method: "POST", headers, body: JSON.stringify({ generateContentRequest: { model: `models/${input.model}`, ...content } }), redirect: "error", signal: AbortSignal.timeout(15000) });
+    const count = z.object({ totalTokens: token }).parse(await readProviderJson(preflight, "Gemini"));
+    if (count.totalTokens > 128000) throw new UnsentRequest("The review exceeds this Studio's context limit.");
+  } catch (error) {
+    // No generateContent request has been sent, including on a countTokens timeout.
+    throw new ProviderStageError("preflight", error);
+  }
+  let value: unknown;
+  try {
+    const response = await fetcher(`${root}:generateContent`, { method: "POST", headers, body: JSON.stringify({ ...content, generationConfig: { maxOutputTokens: 4096, thinkingConfig: { thinkingLevel: "LOW" } } }), redirect: "error", signal: AbortSignal.timeout(GEMINI_GENERATION_TIMEOUT_MS) });
+    value = await readProviderJson(response, "Gemini");
+  } catch (error) { throw new ProviderStageError("generation", error); }
+  let raw: { usageMetadata: unknown; [key: string]: unknown };
+  let usage: ReturnType<typeof normaliseGeminiUsage>;
+  try {
+    raw = z.object({ usageMetadata: z.unknown() }).passthrough().parse(value);
+    usage = normaliseGeminiUsage(raw.usageMetadata);
+  } catch (error) { throw new ProviderStageError("receipt", error); }
   const candidates = z.array(z.object({ finishReason: z.string().default("UNKNOWN"), content: z.object({ parts: z.array(z.object({ text: z.string().optional(), thought: z.boolean().optional() }).passthrough()) }).optional() })).safeParse(raw.candidates);
   const candidate = candidates.success ? candidates.data[0] : undefined;
   // A malformed answer still returns its usable receipt for durable settlement.
   return { output: { text: candidate?.content?.parts.filter(p => !p.thought).map(p => p.text ?? "").join("") ?? "", finishReason: candidate?.finishReason ?? "INVALID", ...(typeof raw.modelVersion === "string" ? {actualModel:raw.modelVersion} : {}) }, receipt: {
-    provider: "gemini", model: input.model, ...normaliseGeminiUsage(raw.usageMetadata), ...(typeof raw.responseId === "string" ? { responseId: raw.responseId } : {}),
+    provider: "gemini", model: input.model, ...usage, ...(typeof raw.responseId === "string" ? { responseId: raw.responseId } : {}),
   } };
 }

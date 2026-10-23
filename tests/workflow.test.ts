@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { reviewPolicy, shortlistUnits, type ReviewServices } from '../lib/review.ts';
 import { executeTurn, StudioError } from '../packages/dual-ai-core/orchestrator.ts';
-import { ProviderError, type UsageReceipt } from '../packages/provider-adapters/contracts.ts';
+import { ProviderError, ProviderStageError, type UsageReceipt } from '../packages/provider-adapters/contracts.ts';
 import { registry } from '../packages/usage-ledger/pricing.ts';
 import type { OperationStore } from '../packages/dual-ai-core/contracts.ts';
 import type { ChatInput, Product } from '../lib/contracts.ts';
@@ -20,7 +20,7 @@ function fixture(mode='success',existing:unknown=null){
   const store:OperationStore={async call<T>(action:string,payload:Record<string,unknown>){events.push(action);calls.push({action,payload});if(action==='admit')return {status:existing?'complete':'new',result:existing,version:0,history:[{role:'user',content:'Stored prior question'}]} as T;if(action==='commit_reply')return payload.result as T;return {ok:true} as T;}};
   const services:ReviewServices={getProduct:async(code)=>code===qualification.code?qualification:unit,
     evaluate:async(request)=>{events.push('typesafe');assert.match(JSON.stringify(request.state),/Stored prior question/);if(mode==='reject')throw new ProviderError('TypeSafe',401);if(mode==='timeout')throw new Error('Network response lost');return {output:{model:config.evaluator.model,answers:mode==='malformed'?{}:answers},receipt:receipt('typesafe')};},
-    generate:async(value)=>{events.push('gemini');prompt=value.prompt;if(mode==='generator_failure')throw new ProviderError('Gemini',429);return {output:{text:'Fixture explanation.',finishReason:'STOP'},receipt:receipt('gemini')};}};
+    generate:async(value)=>{events.push('gemini');prompt=value.prompt;if(mode==='generator_failure')throw new ProviderError('Gemini',429);if(mode==='preflight_timeout'||mode==='generation_timeout')throw new ProviderStageError(mode==='preflight_timeout'?'preflight':'generation',new DOMException('Synthetic timeout','TimeoutError'));return {output:{text:'Fixture explanation.',finishReason:'STOP'},receipt:receipt('gemini')};}};
   return {events,calls,prompt:()=>prompt,run:()=>executeTurn({requestId:crypto.randomUUID(),conversationId:crypto.randomUUID(),expectedVersion:0,message:input.message,requestHash:'fixture',immutableInput:input},config,store,reviewPolicy(input,config,services))};
 }
 test('fresh validated evaluation is durable before generation and final reply',async()=>{
@@ -56,4 +56,13 @@ test('unsettled provider usage prevents generation after settlement failure',asy
 });
 test('automatic research shortlisting uses verified grid codes without a generator',()=>{
   assert.deepEqual(shortlistUnits({...input,unitCodes:[]},qualification),[unit.code]);
+});
+
+for(const mode of ['preflight_timeout','generation_timeout'])test(`${mode}: preserve JEV and distinguish unsent from uncertain generation`,async()=>{
+  const f=fixture(mode),r=await f.run();
+  assert.equal(r.assessment.assessments[0].fit,80);assert.equal(r.replyType,'evidence_only');
+  assert.equal(r.stages?.find(s=>s.name==='explanation')?.errorCode,'timeout');
+  assert.equal(f.calls.find(c=>c.action==='reject_attempt')?.payload.definitive,mode==='preflight_timeout');
+  assert.equal(f.calls.filter(c=>c.action==='settle_attempt').length,1);
+  assert.equal(f.events.filter(e=>e==='gemini').length,1);
 });

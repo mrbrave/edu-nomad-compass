@@ -54,3 +54,9 @@ Human review records Pass, Concern or Not checked for source grounding, fixed-br
 ## Reporting
 
 Use a dated release record with actual outcomes. Keep historical Gateway results clearly historical. A configured secret, passing build, successful mock or HTTP 200 is not proof of working AI. Report unverified live integration explicitly until evidence exists.
+
+## Controlled Studio acceptance scenario
+
+Use [STUDIO-BUSINESS-01](STUDIO-TEST-GUIDE.md): BSB40120 with BSBCRT411 and BSBTEC404. The guide specifies the complete brief, two messages, UI options, expected results, optional evaluator-only insights and recovery stop conditions. It differs from Demo. Record each live outcome separately; automated fixtures cannot mark this case passed.
+
+Recovery regressions cover a synthetic response after 65 seconds, failed token preflight with no generation, a sent-generation timeout retaining its hold, unusable usage metadata, preserved JEV guidance, upper-bound reconciliation retaining allowance, duplicate reconciliation rejection and stale-worker detection beyond the route budget.

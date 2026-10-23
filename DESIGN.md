@@ -1,6 +1,6 @@
 # EduNomad Course Compass UX and UI specification
 
-Version 3.0 | 23 October 2026 | Direct-provider Studio
+Version 3.1 | 23 October 2026 | Direct-provider Studio
 
 ## Design direction
 
@@ -143,6 +143,14 @@ There is no preliminary Gemini planning call. If no units are selected, official
 | Lock Studio | Explicit sidebar action; clears the access code from memory and returns to the entry screen |
 
 A submission receives an opaque operation ID before transport. An uncertain HTTP response offers status recovery, never an automatic paid retry. The brief and New review action cannot replace a pending turn. Switching to Demo locks Studio and preserves only the opaque reference needed to recover that operation. A saved reply can be viewed while a separately requested evaluation updates its insights. The extra evaluation is optional and metered independently; it cannot rewrite the reply. New providers, model management and billing administration are not ordinary-user controls.
+
+## Slow responses and usage recovery
+
+After 15 seconds of a live operation, the working message explains that providers are still responding, the explanation can take up to two minutes and the user should keep the tab open without submitting again. It does not show invented stage progress. The request also includes register retrieval, evaluation and saving; two minutes is the generator window, not a promised end-to-end duration.
+
+A review-required notice explains that no paid retry was made, directs the user to the workspace operator, then to **Refresh** under **Usage remaining** after reconciliation. Refresh reads accounting status only. Pending operation recovery continues to use **Recover status**. All paid submission controls respect the same allowance gate.
+
+In Studio, the third starter card is **Identify evidence gaps** and uses the current unit selection. It does not insert a unit from the Demo scenario. Demo retains its prepared alternative-unit example.
 
 ## Interaction and accessibility
 

@@ -51,11 +51,24 @@ begin
   insert into studio_private.reconciliations(tenant_id,workspace_id,operation_id,amount_nano,reason,actor) values ('compass','preview',uncertain_id,915,'Rollback-only percentage fixture','automated-test');
   r:=public.compass_ledger('snapshot','{}','preview'); assert (r->>'remainingPercent')::integer=0 and (r->>'belowOnePercent')::boolean, 'Positive fraction below 1%';
   assert not has_function_privilege('service_role','studio_private.reconcile_operation(text,uuid,bigint,text,text)','EXECUTE'), 'Runtime cannot reconcile';
-  perform studio_private.reconcile_operation('preview',uncertain_id,0,'Rollback-only evidence confirms no additional provider cost','automated-test');
-  r:=public.compass_ledger('snapshot','{}','preview'); assert r->>'status'='available', 'Reconciliation clears the hold';
+  perform studio_private.reconcile_operation('preview',uncertain_id,40,'UPPER_BOUND: rollback-only fixture retains the full uncertain attempt ceiling, not a reported invoice cost','automated-test');
+  r:=public.compass_ledger('snapshot','{}','preview'); assert r->>'status'='available', 'Conservative reconciliation reopens the workspace';
+  assert exists(select 1 from studio_private.reconciliations where operation_id=uncertain_id and amount_nano=40 and reason like 'UPPER_BOUND:%'), 'Full uncertain ceiling remains deducted';
   select count(*) into count_rows from studio_private.charges where workspace_id='preview'; assert count_rows=3, 'Known charges remain unchanged';
   begin perform studio_private.reconcile_operation('preview',uncertain_id,0,'Duplicate reconciliation must be rejected','automated-test'); exception when others then duplicate_rejected:=true; end;
   assert duplicate_rejected, 'No duplicate reconciliation';
+end $$;
+do $$
+declare rid uuid:=gen_random_uuid(); cid uuid:=gen_random_uuid(); r jsonb;
+begin
+  r:=public.compass_ledger('admit',jsonb_build_object('requestId',rid,'conversationId',cid,'expectedVersion',0,'requestHash','window-fixture','kind','turn','ceiling','1','config','{}'::jsonb,'immutableInput','{}'::jsonb),'preview');
+  assert r->>'status'='new', 'Window fixture admission';
+  update studio_private.operations set created_at=now()-interval '4 minutes' where id=rid;
+  r:=public.compass_ledger('snapshot','{}','preview'); assert r->>'status'='pending', 'Active five-minute request is not prematurely stale';
+  r:=public.compass_ledger('recover',jsonb_build_object('operationId',rid),'preview'); assert r->>'status'='admitted', 'Recovery respects the active window';
+  update studio_private.operations set created_at=now()-interval '7 minutes' where id=rid;
+  r:=public.compass_ledger('snapshot','{}','preview'); assert r->>'status'='review_required', 'Interrupted worker is eventually stale';
+  perform studio_private.reconcile_operation('preview',rid,0,'Rollback-only fixture: no model attempt was ever created or sent','automated-test');
 end $$;
 rollback;
 select 'PASS: transactional ledger fixtures rolled back; no model calls' as result;

@@ -1,6 +1,6 @@
 # EduNomad Course Compass platform reference
 
-Version 3.0 · 23 October 2026 · Direct-provider Studio
+Version 3.1 · 23 October 2026 · Direct-provider Studio
 
 ## Executive summary
 
@@ -14,7 +14,9 @@ A server ledger controls an internal workspace allowance. It reserves a conserva
 
 Requests and replies are durable. Repeating a completed request ID returns its saved result. An unclear network outcome offers status recovery and can retain a cost hold until the operator reconciles it. A separate, optional evaluator action can assess a saved reply without rewriting it.
 
-The release is verified with synthetic provider responses and database checks. No live AI request is made for this migration. Stored credentials are not evidence of working provider access or response quality. The release record distinguishes automated, database, browser and live-provider observations.
+The observed user request completed JEV evaluation and recorded its native usage, then Gemini exceeded the application's 60-second response timeout without returning a usage receipt. The usage block has been cleared through an audited upper-bound internal allowance adjustment. Actual Gemini invoice usage remains unknown. No new paid request was made during this repair.
+
+The timeout and recovery update is a release candidate awaiting review. It passes type checks, 43 deterministic tests, a model-free build and rollback-only database recovery checks. A longer response window reduces premature client cancellation; it does not guarantee provider availability. End-to-end Gemini success remains unverified.
 
 ## User journey
 
@@ -94,7 +96,7 @@ Gemini prompt usage includes cached input. The normaliser charges cached input o
 
 The conservative reservation covers evaluator and generator envelopes. Realised usage settles the relevant portion before model output is interpreted. Therefore a parsing failure still retains its known charge. Network ambiguity or a missing usable receipt retains a possible-cost hold; the app never assumes a browser timeout means no charge occurred. Unstarted stages are released when a degraded reply commits.
 
-Available allowance is allocation minus known charges, reconciled additional costs and active holds. A positive percentage can still be insufficient for a conservative full-turn reservation. Percentage may rise after a hold is released. An exhausted, unassigned, unavailable or review-required account cannot start another paid operation.
+Available allowance is allocation minus known charges, audited reconciliation adjustments and active holds. Adjustments can be verified additional costs or clearly labelled conservative upper bounds for an unrecoverable provider outcome. A positive percentage can still be insufficient for a conservative full-turn reservation. Percentage may rise after a hold is released. An exhausted, unassigned, unavailable or review-required account cannot start another paid operation.
 
 ## Private access and safe projections
 
@@ -144,7 +146,7 @@ There is no unauthenticated model route or browser-facing allocation, key-rotati
 
 A recoverable result is read by operation ID and authorised environment. Unknown or pending results are never automatically submitted again. If cost is uncertain or a worker stops mid-operation, new paid requests remain blocked until the operator reviews provider reporting and records a reconciliation. Existing known charges remain immutable.
 
-The private operator-only reconciliation procedure accepts the verified additional cost, evidence/reason and operator reference. It records an adjustment, resolves uncertain attempts and releases the hold. Ordinary Studio users and the bridge cannot invoke it. Duplicate reconciliation of a resolved operation is rejected.
+The private operator-only reconciliation procedure accepts an additional allowance adjustment, evidence/reason and operator reference. Prefer verified additional cost; if the native outcome cannot be recovered, the operator may retain the full frozen unresolved attempt ceiling as an explicitly labelled upper-bound adjustment. That preserves the cap without asserting an invoice amount or a zero-cost outcome. It records an adjustment, resolves uncertain attempts and releases the hold. Ordinary Studio users and the bridge cannot invoke it. Duplicate reconciliation of a resolved operation is rejected.
 
 Shared-code access does not identify an individual. Individual authentication, revocable sessions, customer roles, tenant routing, self-service administration, automated invoice reconciliation, retention automation and operational alerting remain future work. Records currently persist until an authorised operator applies a retention/deletion process; automatic expiry is not configured. These limits are explicit rather than described as production-ready capabilities.
 
@@ -152,7 +154,19 @@ Shared-code access does not identify an individual. Individual authentication, r
 
 `npm run verify` checks types, deterministic tests and a production build. The test preload disables networking; provider transports are synthetic. Builds contain no live-model check. `tests/ledger.sql` exercises real transaction logic using rolled-back fixtures. Separate bridge and concurrency checks make no AI request.
 
-The current quality record is `docs/quality/2026-10-23-direct-providers.md`. Earlier Gateway observations remain historical evidence and are not connectivity results for this architecture. No new provider output, model quality, latency benchmark or invoice reconciliation is claimed from mock tests.
+The current recovery record is `docs/quality/2026-10-23-studio-recovery.md`; the initial migration record is `docs/quality/2026-10-23-direct-providers.md`. Earlier Gateway observations remain historical evidence and are not connectivity results for this architecture. No new provider output, model quality, latency benchmark or invoice reconciliation is claimed from mock tests.
+
+## Practical Studio test case
+
+Use [the complete Studio test guide](docs/quality/STUDIO-TEST-GUIDE.md) for exact UI options, field values, two copy-and-send messages, expected Workflow states, optional independent assessment and a run record. Its case is **BSB40120 Certificate IV in Business**, comparing **BSBCRT411 Apply critical thinking to work practices** with **BSBTEC404 Use digital technologies to collaborate in a work environment**. It exercises everyday decisions and remote collaboration, distinct from the leadership Demo.
+
+The qualification grid, unit currency and prerequisite lookups were retrieved from the official register on 23 October 2026. This confirms the scenario's source records, not its suitability scores or complete qualification compliance. The PLATFORM document's **Test guide** tab contains the same operating instructions.
+
+## Timeout and failure contract
+
+Gemini token counting is bounded to 15 seconds; generation is bounded to 120 seconds without automatic retry. The turn routes allow 300 seconds for the complete sequence and persistence. An admitted worker is stale after six minutes, leaving a margin beyond the route budget. The longer window requires the accompanying ledger migration; it was tested transactionally and is not yet applied in Production.
+
+A failed token-count preflight proves that no generation request was sent. Its attempt is rejected and released, while any already settled evaluator usage remains charged. A timeout after generation is sent, or an unusable usage receipt, still retains an uncertain hold. Failure logs contain opaque operation/attempt IDs, role, stage, safe category and HTTP status only; they exclude prompts, provider bodies, keys and amounts.
 
 ## Feedback on the supplied method
 

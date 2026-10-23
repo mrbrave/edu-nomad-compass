@@ -12,7 +12,7 @@ export function registry(env: Record<string, string | undefined> = process.env, 
   const changed = now >= new Date("2027-01-01T00:00:00Z");
   const evaluator: RateCard = { version: "typesafe-2026-10-23", provider: "typesafe", model: "jev-1.14.0", input: 42, cachedInput: 42, output: 0, reasoning: 0 };
   const generator: RateCard = { version: changed ? "gemini-standard-2027-01-01" : "gemini-standard-2026-10-23", provider: "gemini", model: "gemini-3.8-flash", input: changed ? 1500 : 750, cachedInput: changed ? 150 : 75, output: changed ? 7500 : 3750, reasoning: changed ? 7500 : 3750 };
-  return { evaluator, generator, adapterVersion: "direct-rest-v1", schemaVersion: "1" };
+  return { evaluator, generator, adapterVersion: "direct-rest-v2", schemaVersion: "1" };
 }
 
 export function costOf(usage: UsageReceipt, rate: RateCard): string {

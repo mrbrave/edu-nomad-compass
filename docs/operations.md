@@ -38,9 +38,9 @@ studio_private.reconcile_operation(
 )
 ```
 
-Supply the verified **additional** cost, excluding charges already in `studio_private.charges`. A confirmed no-charge outcome uses zero. Document the evidence and decision in the reason; do not include credentials. The procedure records an immutable reconciliation entry, marks unresolved attempts reconciled, releases the remaining hold and leaves saved reply content intact. It rejects an already resolved operation.
+Supply an **additional** allowance adjustment, excluding charges already in `studio_private.charges`. Prefer verified provider cost. A confirmed no-charge outcome uses zero. If a sent request has no recoverable native outcome, an authorised operator may instead retain the full frozen ceiling of its unresolved attempts as a conservative internal adjustment. Calculate that ceiling from the private attempt rows under the workspace lock; do not invent an estimated actual charge. Prefix the reason with `UPPER_BOUND`, state that actual provider cost remains unverified and preserve the missing receipt. Do not add known charges again. This consumes already reserved allowance without increasing the approved cap. If later invoice evidence supports a lower cost, an operator can append a compensating allocation with a reference to the original adjustment; never edit the original audit entry. Document the evidence and decision in the reason; do not include credentials. The procedure records an immutable reconciliation entry, marks unresolved attempts reconciled, releases the remaining hold and leaves saved reply content intact. It rejects an already resolved operation.
 
-Execution is revoked from browser roles and the application's privileged bridge role. Use a database-owner session after review. A stale admitted operation is eligible after three minutes, but elapsed time is not proof of no billing: check provider evidence first.
+Execution is revoked from browser roles and the application's privileged bridge role. Use a database-owner session after review. A stale admitted operation is eligible after six minutes in the recovery update (three minutes in the preceding release), but elapsed time is not proof of no billing: check provider evidence first.
 
 ## Release and rollback
 
@@ -53,3 +53,9 @@ Keep the ledger contract compatible during future releases. Use `STUDIO_ENABLE_L
 ## Retention and future operation
 
 Transcripts and private receipts currently persist until an operator applies an explicit retention/deletion process. No automatic expiry, customer administration interface or automated invoice reconciliation is configured. Shared-code access is a pilot mechanism. Customer-facing expansion requires individual identity, permissions, tenant routing, retention operations and alerting.
+
+## Timeout incident and diagnostic handling
+
+The 23 October recovery retained the full unresolved generator ceiling, preserved the completed evaluator charge and saved evidence-only result, and reopened Production. No provider request was repeated and no provider balance was changed. Actual generator cost remains unknown. The internal remaining percentage stayed conservative.
+
+The pending recovery release extends the Gemini generation timeout from 60 to 120 seconds and turn-route duration to 300 seconds. Apply its ledger migration only as part of the authorised release; the stale-operation threshold becomes six minutes. A token-count failure before generation is definitively unsent; a timeout after generation is sent remains uncertain. Query `studio_provider_failure` in the hosting runtime logs to distinguish `preflight`, `generation` and `receipt` stages. A definitive preflight record is evidence for the generator only; preserve all earlier evaluator costs. Never clear a later generation hold from a preflight log belonging to a different operation or attempt.
